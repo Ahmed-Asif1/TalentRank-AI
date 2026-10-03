@@ -15,6 +15,7 @@
     "db:indexes": "tsx src/scripts/create-indexes.ts",
     "db:seed": "tsx src/scripts/seed.ts",
     "db:reset": "tsx src/scripts/seed.ts --reset",
+    "db:reembed": "tsx src/scripts/reembed.ts",
     "evals": "tsx src/scripts/evals.ts"
   },
   "dependencies": {

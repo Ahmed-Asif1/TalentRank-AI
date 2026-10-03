@@ -13,7 +13,10 @@ import {
 import { auth } from "@/lib/auth";
 import { connectToDatabase, connectMongoose } from "@/lib/db";
 import { ItemModel } from "@/lib/models";
-import { extractStructuredData } from "@/lib/ai/extract";
+import { processItem } from "@/lib/items/process";
+import { SeverityBadge } from "@/components/domain/severity-badge";
+import { FieldsPanel } from "@/components/domain/fields-panel";
+import { domain } from "@/lib/domain";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -47,6 +50,10 @@ export default async function ItemDetailPage({
     status: rawItem.status || "pending",
     aiSummary: rawItem.aiSummary,
     aiTags: rawItem.aiTags || [],
+    category: rawItem.category,
+    severity: rawItem.severity,
+    score: rawItem.score,
+    fields: rawItem.fields as Record<string, unknown> | undefined,
     createdAt: rawItem.createdAt ? new Date(rawItem.createdAt) : new Date(),
   };
 
@@ -57,28 +64,7 @@ export default async function ItemDetailPage({
       redirect("/");
     }
 
-    await connectToDatabase();
-    await connectMongoose();
-    const targetItem = await ItemModel.findOne({
-      _id: id,
-      ownerId: currentSession.user.id,
-    });
-
-    if (!targetItem) {
-      return;
-    }
-
-    try {
-      const extraction = await extractStructuredData(targetItem.content || targetItem.title);
-      targetItem.aiSummary = extraction.summary;
-      targetItem.aiTags = extraction.tags;
-      targetItem.status = "processed";
-      await targetItem.save();
-    } catch {
-      targetItem.status = "failed";
-      await targetItem.save();
-    }
-
+    await processItem(id, currentSession.user.id);
     revalidatePath(`/items/${id}`);
     revalidatePath("/dashboard");
   }
@@ -115,6 +101,10 @@ export default async function ItemDetailPage({
             >
               {item.status}
             </Badge>
+            <SeverityBadge severity={item.severity} />
+            {typeof item.score === "number" && (
+              <span className="text-xs text-muted-foreground">{domain.labels.scoreLabel}: {item.score}/100</span>
+            )}
           </div>
 
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
@@ -181,6 +171,8 @@ export default async function ItemDetailPage({
               isLoading={false}
               error={item.status === "failed" ? "Structured extraction previously failed." : null}
             />
+
+            <FieldsPanel fields={item.fields} />
           </div>
         </div>
 

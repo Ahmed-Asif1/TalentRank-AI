@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { authClient } from "@/lib/auth-client";
+import { PreviewCard } from "@/components/marketing/preview-card";
+import { domain } from "@/lib/domain";
 
 export default function MarketingPage(): React.JSX.Element {
   const [loading, setLoading] = useState(false);
@@ -74,12 +76,11 @@ export default function MarketingPage(): React.JSX.Element {
         </Badge>
 
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-tight">
-          The App-Agnostic <span className="text-primary">AI Foundation</span>
+          {domain.labels.product}
         </h1>
 
         <p className="mt-5 text-base sm:text-lg text-muted-foreground max-w-2xl leading-relaxed">
-          Powered by Next.js 16, React 19, Vercel AI SDK v7, MongoDB Atlas Vector Search,
-          and Better Auth. Built for rapid hackathon iteration and instant zero-friction demos.
+          {domain.labels.tagline}
         </p>
 
         {/* Clear Primary CTA */}
@@ -134,6 +135,21 @@ export default function MarketingPage(): React.JSX.Element {
             </div>
           )}
         </div>
+
+        {/* Domain Problem & Solution Preview */}
+        <section className="mt-16 grid w-full grid-cols-1 items-start gap-8 text-left md:grid-cols-2">
+          <div className="space-y-5">
+            <div>
+              <h2 className="text-lg font-semibold">The problem</h2>
+              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{domain.problem}</p>
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold">How it works</h2>
+              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{domain.solution}</p>
+            </div>
+          </div>
+          <PreviewCard />
+        </section>
 
         {/* Architectural Highlights */}
         <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 text-left w-full">

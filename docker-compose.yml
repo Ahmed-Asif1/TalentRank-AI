@@ -9,6 +9,7 @@ services:
       - "27017:27017"
     volumes:
       - atlas-data:/data/db
+      - atlas-config:/data/configdb
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -32,3 +33,4 @@ services:
 
 volumes:
   atlas-data:
+  atlas-config:

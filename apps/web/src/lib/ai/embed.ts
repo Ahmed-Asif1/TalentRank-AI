@@ -17,6 +17,11 @@ export async function embedText(
   const { embedding } = await embed({
     model,
     value: text,
+    providerOptions: {
+      google: {
+        outputDimensionality: EMBEDDING_DIMENSIONS,
+      },
+    },
   });
   return embedding;
 }
@@ -37,6 +42,11 @@ export async function embedManyTexts(
   const { embeddings } = await embedMany({
     model,
     values: texts,
+    providerOptions: {
+      google: {
+        outputDimensionality: EMBEDDING_DIMENSIONS,
+      },
+    },
   });
   return embeddings;
 }

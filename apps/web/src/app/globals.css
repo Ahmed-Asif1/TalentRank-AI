@@ -1,29 +1,57 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #ffffff;
-  --color-foreground: #09090b;
-  --color-card: #ffffff;
-  --color-card-foreground: #09090b;
-  --color-popover: #ffffff;
-  --color-popover-foreground: #09090b;
-  --color-primary: #18181b;
-  --color-primary-foreground: #fafafa;
-  --color-secondary: #f4f4f5;
-  --color-secondary-foreground: #18181b;
-  --color-muted: #f4f4f5;
-  --color-muted-foreground: #71717a;
-  --color-accent: #f4f4f5;
-  --color-accent-foreground: #18181b;
-  --color-destructive: #ef4444;
-  --color-destructive-foreground: #fafafa;
-  --color-border: #e4e4e7;
-  --color-input: #e4e4e7;
-  --color-ring: #18181b;
+  --color-background: #FAFAFF;
+  --color-foreground: #191A2C;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #191A2C;
+  --color-popover: #FFFFFF;
+  --color-popover-foreground: #191A2C;
+  --color-primary: #4F46E5;
+  --color-primary-foreground: #FFFFFF;
+  --color-secondary: #EEF0FF;
+  --color-secondary-foreground: #28264B;
+  --color-muted: #F1F2F8;
+  --color-muted-foreground: #5B6078;
+  --color-accent: #E8E9FF;
+  --color-accent-foreground: #302F73;
+  --color-destructive: #B4233C;
+  --color-destructive-foreground: #FFFFFF;
+  /* Light-mode borders are decorative hairlines, not WCAG 1.4.11 meaningful
+     boundaries. Kept subtle (1.30:1 vs white) so cards read as surfaces, not as
+     outlined wireframe boxes. */
+  --color-border: #DFE1EA;
+  --color-input: #DFE1EA;
+  --color-ring: #4F46E5;
 
   --radius-sm: 0.25rem;
   --radius-md: 0.375rem;
   --radius-lg: 0.5rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: #11131B;
+    --color-foreground: #E8E9F2;
+    --color-card: #191C27;
+    --color-card-foreground: #E8E9F2;
+    --color-popover: #202433;
+    --color-popover-foreground: #E8E9F2;
+    --color-primary: #A5B4FC;
+    --color-primary-foreground: #17192A;
+    --color-secondary: #272B3A;
+    --color-secondary-foreground: #E5E7F4;
+    --color-muted: #242735;
+    --color-muted-foreground: #BEC3D7;
+    --color-accent: #302F58;
+    --color-accent-foreground: #D8D6FF;
+    --color-destructive: #FF7180;
+    --color-destructive-foreground: #2A1118;
+    /* Visible enough to delineate surfaces on dark, but not loud (1.63:1 vs card). */
+    --color-border: #3A3F52;
+    --color-input: #3A3F52;
+    --color-ring: #A5B4FC;
+  }
 }
 
 body {

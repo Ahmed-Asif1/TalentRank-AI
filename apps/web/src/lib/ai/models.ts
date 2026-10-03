@@ -6,10 +6,10 @@ import type { LanguageModel, EmbeddingModel } from "ai";
  * Model Registry — single source of truth for all AI model references.
  * Sole owner: Agent C (Manifest item 29)
  *
- * The default route is Vercel AI Gateway (zero markup, unified observability, BYOK supported).
- * Set USE_GATEWAY = false below to route directly to @ai-sdk/google instead.
+ * The default route is Vercel AI Gateway when AI_GATEWAY_API_KEY is present,
+ * or direct to @ai-sdk/google when using GOOGLE_GENERATIVE_AI_API_KEY.
  */
-export const USE_GATEWAY = true;
+export const USE_GATEWAY = Boolean(process.env.AI_GATEWAY_API_KEY);
 
 /**
  * Helper to detect quota exhaustion or rate limits from Gemini / Google APIs.
@@ -53,7 +53,7 @@ export function isQuotaError(error: unknown): boolean {
  * quota and rate-limit errors from the primary key (GOOGLE_GENERATIVE_AI_API_KEY) and seamlessly
  * retries the call using the backup key so the demo never dies on stage.
  */
-export function getModelWithQuotaFallback(modelId: string = "gemini-2.5-flash"): LanguageModel {
+export function getModelWithQuotaFallback(modelId: string = "gemini-3.8-flash"): LanguageModel {
   const keyA = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   const keyB = process.env.GOOGLE_GENERATIVE_AI_API_KEY_B;
 
@@ -111,7 +111,7 @@ export function getModelWithQuotaFallback(modelId: string = "gemini-2.5-flash"):
 /**
  * Two-key Gemini quota-fallback logic for Embedding Models.
  */
-export function getEmbeddingModelWithQuotaFallback(modelId: string = "text-embedding-004"): EmbeddingModel {
+export function getEmbeddingModelWithQuotaFallback(modelId: string = "gemini-embedding-001"): EmbeddingModel {
   const keyA = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   const keyB = process.env.GOOGLE_GENERATIVE_AI_API_KEY_B;
 
@@ -152,13 +152,13 @@ export function getEmbeddingModelWithQuotaFallback(modelId: string = "text-embed
 }
 
 export const chatModel: LanguageModel = USE_GATEWAY
-  ? gateway("google/gemini-2.5-flash")
-  : getModelWithQuotaFallback("gemini-2.5-flash");
+  ? gateway("google/gemini-3.8-flash")
+  : getModelWithQuotaFallback("gemini-3.8-flash");
 
 export const fastModel: LanguageModel = USE_GATEWAY
-  ? gateway("google/gemini-2.5-flash-lite")
-  : getModelWithQuotaFallback("gemini-2.5-flash-lite");
+  ? gateway("google/gemini-3.5-flash-lite")
+  : getModelWithQuotaFallback("gemini-3.5-flash-lite");
 
 export const embeddingModel: EmbeddingModel = USE_GATEWAY
-  ? gateway.embeddingModel("google/text-embedding-004")
-  : getEmbeddingModelWithQuotaFallback("text-embedding-004");
+  ? gateway.embeddingModel("google/gemini-embedding-001")
+  : getEmbeddingModelWithQuotaFallback("gemini-embedding-001");

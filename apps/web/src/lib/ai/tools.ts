@@ -1,141 +1,129 @@
 import { tool } from "ai";
 import { z } from "zod";
-import { getRawDb } from "@/lib/db";
-import { embedText } from "@/lib/ai/embed";
+import mongoose from "mongoose";
+import { SEVERITY_LEVELS, SeveritySchema } from "@/lib/contracts";
+import { connectMongoose } from "@/lib/db";
+import { ItemModel } from "@/lib/models";
+import { retrieveContext } from "@/lib/ai/rag";
+import { processItem } from "@/lib/items/process";
+import { logger } from "@/lib/logger";
 
 /**
- * Tool for creating an item in the database.
- * Sole owner: Agent C (Manifest item 34)
+ * Chat tools, created per request so every query is scoped to the session's ownerId.
+ * (The previous module-level tools hardcoded ownerId "system" and searched every user's items.)
+ * All five are domain-agnostic: they work on severity/score/fields, whatever the domain is.
  */
-export const createItemTool = tool({
-  description: "Create a new item in the database",
-  inputSchema: z.object({
-    title: z.string().describe("Title of the item"),
-    content: z.string().describe("Content of the item"),
-  }),
-  execute: async ({ title, content }: { title: string; content: string }) => {
-    try {
-      const db = await getRawDb();
-      let embedding: number[] | undefined;
-      try {
-        embedding = await embedText(`${title}\n${content}`);
-      } catch {
-        // embedding generation is best-effort when offline / in mock mode
-      }
+export function createTools(ownerId: string) {
+  return {
+    searchItems: tool({
+      description: "Search the user's records by meaning and keywords. Use for finding relevant records.",
+      inputSchema: z.object({ query: z.string().describe("The search query") }),
+      execute: async ({ query }: { query: string }) => {
+        const results = await retrieveContext(query, ownerId, 5);
+        return {
+          items: results.map((r) => ({
+            id: r.id,
+            title: r.title,
+            excerpt: r.content.slice(0, 300),
+            score: r.score,
+          })),
+        };
+      },
+    }),
 
-      const now = new Date();
-      const doc = {
-        title,
-        content,
-        ownerId: "system", // Tools called in agent loop without explicit user context default to system
-        status: "processed" as const,
-        aiTags: [],
-        ...(embedding ? { embedding } : {}),
-        createdAt: now,
-      };
+    getItem: tool({
+      description: "Get one of the user's records by id, including its analysis.",
+      inputSchema: z.object({ id: z.string().describe("The record id") }),
+      execute: async ({ id }: { id: string }) => {
+        if (!mongoose.isValidObjectId(id)) return { item: null };
+        await connectMongoose();
+        const doc = await ItemModel.findOne({ _id: id, ownerId }).lean();
+        if (!doc) return { item: null };
+        return {
+          item: {
+            id: String(doc._id),
+            title: doc.title,
+            content: doc.content,
+            aiSummary: doc.aiSummary,
+            category: doc.category,
+            severity: doc.severity,
+            score: doc.score,
+            fields: doc.fields,
+          },
+        };
+      },
+    }),
 
-      const result = await db.collection("items").insertOne(doc);
-      return { success: true, id: result.insertedId.toString(), title };
-    } catch (err) {
-      console.warn("[tools] createItemTool failed:", err);
-      return { success: false, error: err instanceof Error ? err.message : String(err) };
-    }
-  },
-});
+    createItem: tool({
+      description: "Save a new record for the user and analyze it. Only use when the user asks to add something.",
+      inputSchema: z.object({
+        title: z.string().describe("Title of the record"),
+        content: z.string().describe("Full text of the record"),
+      }),
+      execute: async ({ title, content }: { title: string; content: string }) => {
+        try {
+          await connectMongoose();
+          const doc = await ItemModel.create({ ownerId, title, content, status: "pending", aiTags: [] });
+          const id = String(doc._id);
+          const status = await processItem(id, ownerId);
+          return { success: true, id, title, status };
+        } catch (err) {
+          logger.warn("[tools] createItem failed", { error: String(err) });
+          return { success: false, error: err instanceof Error ? err.message : String(err) };
+        }
+      },
+    }),
 
-/**
- * Tool for searching items by keyword or tags.
- */
-export const searchItemsTool = tool({
-  description: "Search items by semantic similarity, keyword, or tags",
-  inputSchema: z.object({
-    query: z.string().describe("The search query"),
-  }),
-  execute: async ({ query }: { query: string }) => {
-    try {
-      const db = await getRawDb();
-      const safeQuery = query.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const items = await db
-        .collection("items")
-        .find({
-          $or: [
-            { title: { $regex: safeQuery, $options: "i" } },
-            { content: { $regex: safeQuery, $options: "i" } },
-            { aiTags: { $regex: safeQuery, $options: "i" } },
-          ],
-        })
-        .limit(5)
-        .toArray();
+    getPortfolioStats: tool({
+      description:
+        "Counts by severity, average score, and the top records by score. Use for overview questions like 'what is riskiest' or 'how many are urgent'.",
+      inputSchema: z.object({
+        severity: SeveritySchema.optional().describe("Only include records at this severity"),
+      }),
+      execute: async ({ severity }: { severity?: (typeof SEVERITY_LEVELS)[number] }) => {
+        await connectMongoose();
+        const docs = await ItemModel.find({ ownerId, ...(severity ? { severity } : {}) })
+          .sort({ score: -1 })
+          .limit(200)
+          .lean();
+        const scored = docs.filter((d) => typeof d.score === "number");
+        return {
+          total: docs.length,
+          bySeverity: Object.fromEntries(
+            SEVERITY_LEVELS.map((level) => [level, docs.filter((d) => d.severity === level).length])
+          ),
+          avgScore: scored.length
+            ? Math.round(scored.reduce((sum, d) => sum + (d.score ?? 0), 0) / scored.length)
+            : null,
+          top: docs.slice(0, 3).map((d) => ({
+            id: String(d._id),
+            title: d.title,
+            severity: d.severity,
+            score: d.score,
+          })),
+        };
+      },
+    }),
 
-      return {
-        items: items.map((doc) => ({
-          id: String(doc._id ?? ""),
-          title: String(doc.title || ""),
-          content: String(doc.content || ""),
-        })),
-      };
-    } catch (err) {
-      console.warn("[tools] searchItemsTool failed:", err);
-      return { items: [] };
-    }
-  },
-});
-
-/**
- * Tool for fetching an item by its unique ID.
- */
-export const getItemTool = tool({
-  description: "Get an item by its ID",
-  inputSchema: z.object({
-    id: z.string().describe("The unique item ID"),
-  }),
-  execute: async ({ id }: { id: string }) => {
-    try {
-      const db = await getRawDb();
-      const { ObjectId } = await import("mongodb");
-      let doc = null;
-
-      if (ObjectId.isValid(id)) {
-        doc = await db.collection("items").findOne({ _id: new ObjectId(id) });
-      }
-
-      if (!doc) {
-        doc = await db
-          .collection("items")
-          .findOne({ _id: id as unknown as import("mongodb").ObjectId });
-      }
-
-      if (!doc) {
-        return { item: null };
-      }
-
-      return {
-        item: {
-          id: String(doc._id ?? ""),
-          title: String(doc.title || ""),
-          content: String(doc.content || ""),
-          status: String(doc.status || "processed"),
-          aiSummary: typeof doc.aiSummary === "string" ? doc.aiSummary : undefined,
-          aiTags: Array.isArray(doc.aiTags) ? (doc.aiTags as string[]) : [],
-          createdAt: doc.createdAt,
-        },
-      };
-    } catch (err) {
-      console.warn("[tools] getItemTool failed:", err);
-      return { item: null };
-    }
-  },
-});
-
-// Primary tool collection bundle
-export const aiTools = {
-  createItem: createItemTool,
-  searchItems: searchItemsTool,
-  getItem: getItemTool,
-};
-
-// Aliases for consumer flexibility and exact naming alignment
-export const tools = aiTools;
-export const createItem = createItemTool;
-export const searchItems = searchItemsTool;
-export const getItem = getItemTool;
+    compareItems: tool({
+      description: "Compare 2 to 4 records side by side (severity, score, category and extracted fields).",
+      inputSchema: z.object({ ids: z.array(z.string()).min(2).max(4).describe("Record ids to compare") }),
+      execute: async ({ ids }: { ids: string[] }) => {
+        const valid = ids.filter((id) => mongoose.isValidObjectId(id));
+        await connectMongoose();
+        const docs = await ItemModel.find({ _id: { $in: valid }, ownerId }).lean();
+        return {
+          items: docs.map((d) => ({
+            id: String(d._id),
+            title: d.title,
+            category: d.category,
+            severity: d.severity,
+            score: d.score,
+            summary: d.aiSummary,
+            fields: d.fields,
+          })),
+        };
+      },
+    }),
+  };
+}

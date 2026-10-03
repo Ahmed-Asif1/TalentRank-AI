@@ -23,6 +23,7 @@
     "db:indexes": "npm run db:indexes --workspace=apps/web",
     "db:seed": "npm run db:seed --workspace=apps/web",
     "db:reset": "npm run db:reset --workspace=apps/web",
+    "db:reembed": "npm run db:reembed --workspace=apps/web",
     "evals": "npm run evals --workspace=apps/web"
   }
 }

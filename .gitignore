@@ -79,3 +79,9 @@ Desktop.ini
 *.swp
 *.swo
 *~
+
+# Temporary & Local Suggestions
+claude suggestions/
+claudes suggestions/
+"claude suggestions"/
+"claudes suggestions"/

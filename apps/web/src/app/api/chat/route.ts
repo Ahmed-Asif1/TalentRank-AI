@@ -11,11 +11,12 @@ import mongoose from "mongoose";
 import { auth } from "@/lib/auth";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { chatModel } from "@/lib/ai/models";
-import { SYSTEM_PROMPT } from "@/lib/ai/prompts/system";
-import { tools } from "@/lib/ai/tools";
+import { buildChatInstructions } from "@/lib/ai/prompts/system";
+import { createTools } from "@/lib/ai/tools";
 import { ChatRequestSchema } from "@/lib/contracts";
 import { connectMongoose } from "@/lib/db";
-import { ChatThreadModel, ChatMessageModel, AiRunModel } from "@/lib/models";
+import { ChatThreadModel, ChatMessageModel, AiRunModel, ItemModel } from "@/lib/models";
+import { retrieveContext, type RagResultItem } from "@/lib/ai/rag";
 import { logger } from "@/lib/logger";
 
 export async function POST(req: Request): Promise<Response> {
@@ -115,14 +116,39 @@ export async function POST(req: Request): Promise<Response> {
     };
   });
 
+  // RAG: ground the answer in the user's own records. ownerId is session-derived.
+  const question =
+    [...messages].reverse().find((m) => m.role === "user")
+      ?.parts.map((p) => (typeof p.text === "string" ? p.text : ""))
+      .join(" ")
+      .trim() ?? "";
+
+  let context: RagResultItem[] = [];
+  try {
+    context = await retrieveContext(question, ownerId, 4);
+    if (itemId && mongoose.Types.ObjectId.isValid(itemId)) {
+      await connectMongoose();
+      const focus = await ItemModel.findOne({ _id: itemId, ownerId }).lean();
+      if (focus) {
+        const id = String(focus._id);
+        context = [
+          { id, title: focus.title, content: focus.content ?? "", score: 1 },
+          ...context.filter((c) => c.id !== id),
+        ];
+      }
+    }
+  } catch (ragErr) {
+    logger.warn("[chat] Context retrieval failed; answering without sources", { error: String(ragErr) });
+  }
+
   const startTime = Date.now();
 
   // AI SDK v7 streaming text loop with tool calling and completion persistence
   const result = streamText({
     model: chatModel,
-    instructions: SYSTEM_PROMPT,
+    instructions: buildChatInstructions(context),
     messages: await convertToModelMessages(messages as unknown as Parameters<typeof convertToModelMessages>[0]),
-    tools,
+    tools: createTools(ownerId),
     stopWhen: isStepCount(5),
     onFinish: async ({ text, usage }) => {
       const latencyMs = Date.now() - startTime;
@@ -212,7 +238,7 @@ export async function POST(req: Request): Promise<Response> {
         const modelId =
           typeof chatModel === "object" && chatModel !== null && "modelId" in chatModel
             ? String(chatModel.modelId)
-            : "gemini-2.5-flash";
+            : "gemini-3.8-flash";
 
         await AiRunModel.create({
           ownerId,

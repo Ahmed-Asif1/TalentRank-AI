@@ -2,18 +2,19 @@
 
 An app-agnostic, production-grade AI application starter foundation built for high-velocity hackathons and robust production deployment.
 
-**Core Stack**: Next.js 16 (App Router & Turbopack) · React 19 · TypeScript 7 · Vercel AI SDK v7 · MongoDB Atlas Local & Cloud Vector Search · Better Auth · Tailwind CSS v4 · Optional FastAPI Sidecar
+**Core Stack**: Next.js 16 (App Router & Turbopack) · React 19 · TypeScript · Vercel AI SDK v7 · Google Gemini 3 · MongoDB Atlas Local & Cloud Vector Search · Better Auth · Tailwind CSS v4 · Zod · Optional FastAPI Sidecar
 
-> 📖 **Looking for a beginner-friendly overview?** Check out [EXPLAIN.md](EXPLAIN.md) for a simple explanation of how everything works, what MongoDB and Vector Search are, and how the entire workflow connects together!
+> 📖 **Looking for a beginner-friendly overview?** Check out [EXPLAIN.md](EXPLAIN.md) for a simple explanation of how everything works, how the Domain Layer lets you switch products in 1 line, what Vector Search is, and how citations connect together!
 
 ---
 
 ## 📋 Table of Contents
 - [Project Status & Health](#-project-status--health)
 - [Quickstart: Zero to Running in 5 Minutes](#-quickstart-zero-to-running-in-5-minutes)
+- [The Domain-Adaptable Architecture](#-the-domain-adaptable-architecture)
 - [Configuration & API Keys](#-configuration--api-keys)
 - [Project Architecture & Anatomy](#-project-architecture--anatomy)
-  - [1. User Interface (UI)](#1-user-interface-ui)
+  - [1. User Interface & Interactive Citations](#1-user-interface--interactive-citations)
   - [2. Database & Data Models](#2-database--data-models)
   - [3. API Endpoints & Authentication](#3-api-endpoints--authentication)
   - [4. AI Spine & Automation](#4-ai-spine--automation)
@@ -27,17 +28,18 @@ An app-agnostic, production-grade AI application starter foundation built for hi
 
 ## 🚀 Project Status & Health
 
-All core modules, contracts, and quality gates have been implemented and independently verified:
+All core modules, domain registries, and quality gates have been implemented and independently verified:
 
 | Pipeline Gate | Target | Status | Notes |
 | :--- | :--- | :---: | :--- |
 | **Type Integrity** | `npm run typecheck` | ✅ PASS | 0 TypeScript errors across monorepo |
 | **Code Style & Lint** | `npm run lint` | ✅ PASS | 0 errors via ESLint 9 native flat configuration |
-| **Unit Test Suite** | `npm run test` | ✅ PASS | 20/20 unit tests pass offline with mock language models |
-| **AI Evaluation Suite** | `npm run evals` | ✅ PASS | 10/10 structured extraction test cases pass |
+| **Unit Test Suite** | `npm run test` | ✅ PASS | **38/38 unit tests pass** offline across 4 test suites |
+| **AI Evaluation Suite** | `npm run evals` | ✅ PASS | **10/10 structured extraction test cases pass** |
 | **Database Indexes** | `npm run db:indexes` | ✅ PASS | Compound B-tree + Atlas Vector Search (768d HNSW) validated |
-| **Data Seeding** | `npm run db:seed` | ✅ PASS | Idempotent seed (7 items, 3 threads, 5 AI telemetry runs, 0 warnings) |
-| **Production Build** | `npm run build` | ✅ PASS | Offline Next.js 16 Turbopack build succeeds in ~4.3s |
+| **Data Seeding** | `npm run db:seed` | ✅ PASS | Idempotent seed (7 items, 3 threads, 5 AI telemetry runs) |
+| **Live Re-Embedding** | `npm run db:reembed` | ✅ PASS | Batch-embeds records with live `gemini-embedding-001` vectors |
+| **Production Build** | `npm run build` | ✅ PASS | Offline Next.js 16 Turbopack build succeeds in ~5.1s |
 | **Single MongoClient** | Spec Rule 4 | ✅ PASS | Exactly 1 cached MongoClient instantiation in `src/lib/db.ts` |
 
 ---
@@ -53,11 +55,11 @@ All core modules, contracts, and quality gates have been implemented and indepen
 ### Step-by-Step Launch
 
 ```bash
-# 1. Start MongoDB Atlas Local container (includes mongod + mongot vector search)
+# 1. Start MongoDB Atlas Local container (includes mongod + mongot vector search + keyfile volume)
 docker compose up -d
 
 # 2. Copy and set up environment configuration
-cp .env.example .env.local
+cp .env.example apps/web/.env.local
 
 # 3. Install dependencies across all workspaces
 npm install
@@ -65,16 +67,38 @@ npm install
 # 4. Generate compound indexes and Atlas Vector Search index definition
 npm run db:indexes
 
-# 5. Populate initial demo seed data (items, threads, runs)
+# 5. Populate initial demo seed data (items, threads, telemetry)
 npm run db:seed
 
-# 6. Launch Next.js development server
+# 6. (Optional) Re-embed records with live Gemini vectors if you added your API key
+npm run db:reembed
+
+# 7. Launch Next.js development server
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser:
-* Click **"Login as Demo User"** for instant access to the pre-seeded demo workspace with 7 realistic artifacts, conversation history, and telemetry.
-* Or click **"Launch Demo Anonymously"** to test zero-friction anonymous guest onboarding.
+* Click **"Login as Demo User"** for instant access to the pre-seeded demo workspace with realistic artifacts, conversation history, and telemetry.
+* Or click **"Launch Demo Anonymously"** to test zero-friction guest onboarding for judges.
+
+---
+
+## 🎯 The Domain-Adaptable Architecture
+
+The repository features a **Domain Registry** in [`apps/web/src/lib/domain.ts`](apps/web/src/lib/domain.ts). This allows your team to change the entire product idea in **one line of code** without database migrations or schema churn:
+
+```typescript
+// apps/web/src/lib/domain.ts
+export const ACTIVE_DOMAIN_ID: DomainId = "contracts"; // "generic" | "contracts" | "meetings" | "tickets"
+```
+
+### What Follows Automatically When You Flip the Domain:
+1. **Entity Labels:** "Items" ➔ "Contracts" / "Meetings" / "Tickets"
+2. **Severity & Risk Meters:** Color-coded priority badges (`low`, `medium`, `high`, `critical`) and 0–100 score meters.
+3. **Structured Extraction (`DomainExtractSchema`):** Automatically extracts domain-specific JSON payloads into `item.fields` (e.g., contract clauses, meeting action items with owners, or ticket sentiment).
+4. **Chat Persona & Guardrails:** Guides the assistant's tone (e.g., careful contract analyst vs. chief of staff vs. support lead).
+5. **Interactive Landing Page:** Automatically updates the hero problem/solution copy and live `PreviewCard`.
+6. **Quick Prompts:** Provides 1-click domain-relevant starter questions in the chat.
 
 ---
 
@@ -82,7 +106,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser:
 
 Environment variables are validated on server startup using strict Zod schemas in [`apps/web/src/lib/env.ts`](apps/web/src/lib/env.ts).
 
-Create `.env.local` in the project root or in `apps/web/.env.local`:
+Create `.env.local` inside `apps/web/.env.local`:
 
 ```bash
 # ==============================================================================
@@ -104,8 +128,8 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
 # ==============================================================================
 # AI PROVIDERS & GATEWAY (Keys optional for offline tests)
 # ==============================================================================
-# Primary Gemini API Key (get from https://aistudio.google.com/)
-GOOGLE_GENERATIVE_AI_API_KEY=""
+# Primary Gemini API Key (get free from https://aistudio.google.com/)
+GOOGLE_GENERATIVE_AI_API_KEY="your-gemini-api-key"
 
 # Secondary Gemini API Key (automatic fallback if primary encounters 429 quota exhaustion)
 GOOGLE_GENERATIVE_AI_API_KEY_B=""
@@ -120,7 +144,7 @@ AI_GATEWAY_API_KEY=""
 BLOB_READ_WRITE_TOKEN=""
 
 # Upstash Redis REST credentials for distributed sliding-window rate limiting
-# (Falls back to in-memory rate limiting if left empty)
+# (Falls back gracefully to in-memory rate limiting if left empty)
 UPSTASH_REDIS_REST_URL=""
 UPSTASH_REDIS_REST_TOKEN=""
 
@@ -131,7 +155,7 @@ SENTRY_DSN=""
 DEMO_USER_EMAIL="demo@example.com"
 ```
 
-> **Note on Keys:** The test suite, evaluation script, and production build run **100% offline and key-free**. You only need `GOOGLE_GENERATIVE_AI_API_KEY` when testing real live Gemini LLM calls.
+> **Note on Keys:** The test suite, evaluation script, and production build run **100% offline and key-free**. You only need `GOOGLE_GENERATIVE_AI_API_KEY` when testing real live Gemini LLM calls and vector re-embedding.
 
 ---
 
@@ -144,21 +168,25 @@ aicon-hackathon/
 ├── apps/
 │   ├── web/                              # Primary full-stack Next.js 16 product
 │   │   ├── src/app/                      # Next.js App Router (UI & API Routes)
-│   │   │   ├── (marketing)/page.tsx      # Public landing page with Demo User & Anonymous CTA
-│   │   │   ├── (app)/dashboard/page.tsx  # Workspace dashboard (metrics & item grid)
-│   │   │   ├── (app)/items/[id]/page.tsx # Item inspector, structured metadata, and chat panel
-│   │   │   └── api/                      # REST & streaming route handlers
+│   │   │   ├── (marketing)/page.tsx      # Public landing page with Demo User CTA & PreviewCard
+│   │   │   ├── (app)/dashboard/page.tsx  # Workspace dashboard (KPI metrics & filtered table)
+│   │   │   ├── (app)/items/[id]/page.tsx # Item inspector, SeverityBadge, FieldsPanel, and RAG chat
+│   │   │   └── api/                      # REST, streaming chat, and demo auth route handlers
 │   │   ├── src/components/
-│   │   │   ├── ai/                       # Chat & Structured Extraction components
+│   │   │   ├── ai/                       # Chat, CitedText, and Structured Extraction components
+│   │   │   ├── domain/                   # SeverityBadge and FieldsPanel domain components
+│   │   │   ├── marketing/                # Interactive PreviewCard component
 │   │   │   └── ui/                       # shadcn/ui design primitives
 │   │   ├── src/lib/
-│   │   │   ├── ai/                       # AI models, RAG retrieval, extraction, and tools
+│   │   │   ├── ai/                       # AI models, RAG retrieval, extraction, and session-scoped tools
+│   │   │   ├── items/process.ts          # Unified extract + embed + save pipeline
 │   │   │   ├── models/                   # Mongoose schemas (Item, Thread, Message, AiRun)
+│   │   │   ├── domain.ts                 # Central domain registry & schemas
+│   │   │   ├── contracts.ts              # Zod interfaces and cross-boundary types
 │   │   │   ├── auth.ts                   # Better Auth server configuration
 │   │   │   ├── auth-client.ts            # Client-side React auth client
-│   │   │   ├── contracts.ts              # Frozen interface contracts & shared schemas
 │   │   │   └── db.ts                     # Single cached MongoClient & Mongoose pool
-│   │   ├── src/scripts/                  # db:indexes, db:seed, and evals scripts
+│   │   ├── src/scripts/                  # db:indexes, db:seed, db:reembed, and evals scripts
 │   │   └── proxy.ts                      # Next 16 routing convention (replaces middleware.ts)
 │   └── api/                              # Optional Python FastAPI sidecar (ML/OCR escape hatch)
 ├── packages/
@@ -169,39 +197,44 @@ aicon-hackathon/
 │   ├── dependabot.yml                    # Automated dependency update schedule
 │   ├── pull_request_template.md          # Standardized PR review checklist
 │   └── ISSUE_TEMPLATE/                   # Professional GitHub issue forms
-├── docker-compose.yml                    # Local MongoDB Atlas container configuration
+├── docker-compose.yml                    # Local MongoDB Atlas container configuration with keyfile volume
 └── package.json                          # Workspace root orchestrator
 ```
 
-### 1. User Interface (UI)
-* **Landing Page** ([`apps/web/src/app/(marketing)/page.tsx`](apps/web/src/app/(marketing)/page.tsx)): Features hero marketing copy, direct anonymous onboarding, and the **"Login as Demo User"** bypass button for judges.
-* **Workspace Dashboard** ([`apps/web/src/app/(app)/dashboard/page.tsx`](apps/web/src/app/(app)/dashboard/page.tsx)): Displays workspace stats, artifact card gallery with AI tags, and instant item creation form.
-* **Artifact & RAG View** ([`apps/web/src/app/(app)/items/[id]/page.tsx`](apps/web/src/app/(app)/items/[id]/page.tsx)): Side-by-side view featuring artifact raw text, structured extraction badges, re-extraction trigger, and contextual multi-turn conversational chat.
-* **Design Primitives** ([`apps/web/src/components/ui/`](apps/web/src/components/ui/)): Clean shadcn/ui components configured with Tailwind CSS v4 design tokens.
+### 1. User Interface & Interactive Citations
+* **Landing Page** ([`apps/web/src/app/(marketing)/page.tsx`](apps/web/src/app/(marketing)/page.tsx)): Features dynamic domain problem/solution copy, interactive [`PreviewCard`](apps/web/src/components/marketing/preview-card.tsx), and 1-click **"Login as Demo User"** bypass.
+* **Workspace Dashboard** ([`apps/web/src/app/(app)/dashboard/page.tsx`](apps/web/src/app/(app)/dashboard/page.tsx)): Displays KPI metrics (total, analyzed, high severity, average score), severity and status dropdown filters, search bar, and tabular artifact browser.
+* **Interactive Citations (`CitedText`)** ([`apps/web/src/components/ai/cited-text.tsx`](apps/web/src/components/ai/cited-text.tsx)): Converts assistant citation markers (`[[item:<id>|<title>]]`) into clickable badge pills linking directly to source items.
+* **Domain UI Panels** ([`apps/web/src/components/domain/`](apps/web/src/components/domain/)):
+  * [`SeverityBadge`](apps/web/src/components/domain/severity-badge.tsx): Color-coded priority badges (`low`, `medium`, `high`, `critical`).
+  * [`FieldsPanel`](apps/web/src/components/domain/fields-panel.tsx): Humanizes and renders extracted polymorphic key-value domain fields.
 
 ### 2. Database & Data Models
 * **Dual Connection Architecture** ([`apps/web/src/lib/db.ts`](apps/web/src/lib/db.ts)):
   * **Native MongoClient** via `getMongoClient()`: Cached on `globalThis` to preserve connection pool limits across Next.js Turbopack reloads. Instantiated **exactly once**.
   * **Mongoose Connection Pool** via `connectMongoose()`: Required by Server Components and API routes querying Mongoose models.
 * **Mongoose Schemas** ([`apps/web/src/lib/models/`](apps/web/src/lib/models/)):
-  * [`ItemModel`](apps/web/src/lib/models/item.ts): User-owned artifacts with 768d vector embeddings.
+  * [`ItemModel`](apps/web/src/lib/models/item.ts): User-owned artifacts with category, severity, score, dynamic `fields: Schema.Types.Mixed`, and 768d vector embeddings.
   * [`ChatThreadModel`](apps/web/src/lib/models/chat-thread.ts) & [`ChatMessageModel`](apps/web/src/lib/models/chat-message.ts): Multi-turn conversation history.
   * [`AiRunModel`](apps/web/src/lib/models/ai-run.ts): Observability log tracking input/output tokens, reasoning tokens, cache-read tokens, latency, and estimated cost.
 * **Indexing Script** ([`apps/web/src/scripts/create-indexes.ts`](apps/web/src/scripts/create-indexes.ts)): Automatically builds compound B-tree indexes and registers the 768-dimensional Atlas Vector Search index.
 * **Seed Script** ([`apps/web/src/scripts/seed.ts`](apps/web/src/scripts/seed.ts)): Completely idempotent seeding script with deterministic embedding vectors.
+* **Re-Embed Script** ([`apps/web/src/scripts/reembed.ts`](apps/web/src/scripts/reembed.ts)): Re-embeds seeded items with live Gemini 768d vectors before presentations.
 
 ### 3. API Endpoints & Authentication
 * **Better Auth Handler** ([`apps/web/src/app/api/auth/[...all]/route.ts`](apps/web/src/app/api/auth/[...all]/route.ts)): Handles session management, anonymous session provisioning, and magic link authentication.
 * **Demo Sign-In** ([`apps/web/src/app/api/auth/demo/route.ts`](apps/web/src/app/api/auth/demo/route.ts)): Creates an authenticated session for `demo@example.com` with cryptographic HMAC cookie signing.
-* **Streaming Chat** ([`apps/web/src/app/api/chat/route.ts`](apps/web/src/app/api/chat/route.ts)): Real-time UI message stream powered by AI SDK v7, with automatic message normalization, multi-step tool execution, and session-derived ownership enforcement.
+* **Streaming Chat** ([`apps/web/src/app/api/chat/route.ts`](apps/web/src/app/api/chat/route.ts)): Real-time UI message stream powered by AI SDK v7, with RAG context retrieval, source formatting, session-scoped tool execution, and telemetry logging.
 * **Artifacts REST API** ([`apps/web/src/app/api/items/route.ts`](apps/web/src/app/api/items/route.ts)): Scoped CRUD operations for user artifacts.
-* **Next.js 16 Request Proxy** ([`apps/web/src/proxy.ts`](apps/web/src/proxy.ts)): Modern request routing and session-cookie propagation (replaces legacy `middleware.ts`).
 
 ### 4. AI Spine & Automation
-* **Models & Failover** ([`apps/web/src/lib/ai/models.ts`](apps/web/src/lib/ai/models.ts)): Configures `gemini-2.5-flash` for chat and extraction, with quota failover to secondary keys and mock fallbacks during tests.
-* **Vector Embeddings & RAG** ([`apps/web/src/lib/ai/rag.ts`](apps/web/src/lib/ai/rag.ts)): 768-dimensional embeddings via `text-embedding-004`. Performs `$vectorSearch` with automatic regex keyword fallback if the vector index is offline.
-* **Structured Extraction** ([`apps/web/src/lib/ai/extract.ts`](apps/web/src/lib/ai/extract.ts)): Uses `generateObject` with Zod validation to reliably extract summaries, tags, and action items.
-* **Tool Calling** ([`apps/web/src/lib/ai/tools/`](apps/web/src/lib/ai/tools/)): Registered tools enabling the assistant to search the knowledge base, inspect artifacts, and create new workspace items.
+* **Models & Failover** ([`apps/web/src/lib/ai/models.ts`](apps/web/src/lib/ai/models.ts)):
+  * Chat: **`gemini-3.8-flash`** (with automatic fallback to key B on 429 quota exhaustion).
+  * Fast extraction: **`gemini-3.5-flash-lite`**.
+  * Embeddings: **`gemini-embedding-001`** (768 dimensions via provider options).
+* **Unified Pipeline** ([`apps/web/src/lib/items/process.ts`](apps/web/src/lib/items/process.ts)): Single `processItem(id, ownerId)` function used across manual creation, chat tool calls, and background re-runs.
+* **Vector Search & RAG** ([`apps/web/src/lib/ai/rag.ts`](apps/web/src/lib/ai/rag.ts)): 768-dimensional embeddings with `$vectorSearch` and automatic keyword fallback if the index is offline.
+* **Session-Scoped Tools** ([`apps/web/src/lib/ai/tools.ts`](apps/web/src/lib/ai/tools.ts)): `createTools(ownerId)` ensures every query is strictly tenant-isolated (`searchItems`, `getItem`, `createItem`, `getPortfolioStats`, `compareItems`).
 
 ### 5. Python FastAPI Sidecar
 * **Path**: [`apps/api/`](apps/api/)
@@ -220,7 +253,7 @@ npm run typecheck
 # 2. Lint code style (ESLint 9 Flat Config)
 npm run lint
 
-# 3. Run unit tests offline (Vitest + MockLanguageModelV3)
+# 3. Run unit tests offline (38/38 passing across all modules)
 npm run test
 
 # 4. Run AI structured extraction evals (10 offline test cases)
@@ -232,7 +265,10 @@ npm run db:indexes
 # 6. Verify database seed idempotency
 npm run db:seed
 
-# 7. Verify offline production build (Turbopack)
+# 7. Refresh vector embeddings using live Gemini API key
+npm run db:reembed
+
+# 8. Verify offline production build (Turbopack)
 npm run build
 ```
 
@@ -248,49 +284,35 @@ npm run build
    Serverless environments (Vercel, AWS Lambda) have ephemeral filesystems. File uploads must stream directly to cloud object storage (`@vercel/blob`).
 4. **Offline Test Determinism:**
    Unit tests and evaluations must never depend on live third-party API credentials or network availability. Use `MockLanguageModelV3` and `MockEmbeddingModelV3` for test assertions.
-5. **AI SDK v7 Conventions:**
-   * Use `convertToModelMessages` (strictly `await`ed).
-   * Specify system instructions via `instructions:` parameter (never `system:`).
-   * Reference messages as `ModelMessage` and normalize incoming message parts.
-6. **Next.js 16 Request Routing:**
-   Next.js 16 uses `src/proxy.ts` exporting a `proxy` function. The legacy `middleware.ts` convention is deprecated.
-7. **Vector Index Dimension Alignment:**
-   `EMBEDDING_DIMENSIONS = 768` is exported as a single source of truth in [`apps/web/src/lib/contracts.ts`](apps/web/src/lib/contracts.ts). Both the embedding generator and the vector index script consume this constant to prevent dimension mismatches.
+5. **Polymorphic Schemas Without Migrations:**
+   Domain-specific extraction results are stored in `item.fields` (Mongoose `Mixed`), validated at runtime by Zod schemas in `lib/domain.ts`.
 
 ---
 
-## ⚙️ CI/CD & Repository Automation
+## 🚢 CI/CD & Repository Automation
 
-This starter comes equipped with automated GitHub Actions workflows:
-
-* **Continuous Integration ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)):**
-  Triggers on every `push` and `pull_request` to `main`. Executes Typecheck, Lint, Vitest unit tests, AI evals, and production build in a clean container.
-* **Security Scanning ([`.github/workflows/codeql.yml`](.github/workflows/codeql.yml)):**
-  Runs weekly and on pull requests to detect vulnerabilities using GitHub CodeQL.
-* **Dependency Maintenance ([`.github/dependabot.yml`](.github/dependabot.yml)):**
-  Monthly grouped dependency updates for npm packages and GitHub Actions.
-* **Issue & PR Templates:**
-  Structured GitHub issue forms for Bug Reports, Feature Proposals, and standardized Pull Request checklists located in [`.github/`](.github/).
+* **Continuous Integration (`.github/workflows/ci.yml`)**: Matrix workflow verifying `typecheck`, `lint`, `test`, `evals`, and `build` on every push and pull request.
+* **CodeQL Security Scanning (`.github/workflows/codeql.yml`)**: Automated security scanning with conditional SARIF upload handling for private and public repository visibility.
+* **Dependabot (`.github/dependabot.yml`)**: Automated monthly dependency updates for npm packages and GitHub Actions.
 
 ---
 
 ## ❓ Troubleshooting FAQ
 
-| Symptom | Cause | Solution |
-| :--- | :--- | :--- |
-| `Cannot connect to MongoDB` | Atlas Local Docker container is starting or stopped | Run `docker compose up -d` and verify health with `docker compose ps`. |
-| `TopologyDescription: ReplicaSetNoPrimary` | Missing `directConnection=true` parameter in URI | Ensure connection URI includes `?directConnection=true` when running Atlas Local container. |
-| Vector search returns 0 results | Dimension mismatch between embedding model and index | Verify `EMBEDDING_DIMENSIONS` in `apps/web/src/lib/contracts.ts` (768) matches the vector search index in `apps/web/src/scripts/create-indexes.ts`. |
-| Mongoose queries buffer indefinitely (10s timeout) | Missing `await connectMongoose()` in server component | Ensure `connectMongoose()` is called before executing any Mongoose model operations. |
-| Chat crashes on legacy messages | Missing message `parts` array in payload | Chat route automatically normalizes string `content` to `{ type: 'text', text: content }`. |
-| `next lint` command not found | Next.js 16 removed the `next lint` CLI wrapper | Use `npm run lint` which executes `eslint src/` with native flat config. |
+### 1. `MongoServerSelectionError: connection closed` on startup
+**Cause:** MongoDB Atlas Local container is not running or crashed.
+**Fix:**
+```powershell
+docker compose down -v
+docker compose up -d
+npm run db:indexes
+npm run db:seed
+```
 
----
+### 2. `Error reading file /data/configdb/keyfile: No such file or directory`
+**Cause:** Docker volume configuration missing the configdb mount.
+**Fix:** Ensure your `docker-compose.yml` mounts both `atlas-data:/data/db` and `atlas-config:/data/configdb`. Then reset with `docker compose down -v && docker compose up -d`.
 
-## 📄 License & Community
-
-* **License:** Distributed under the open-source **[MIT License](LICENSE)**. Free for commercial, personal, and hackathon use.
-* **Security:** Review our responsible disclosure policy in **[SECURITY.md](SECURITY.md)**.
-* **Code of Conduct:** We adhere to the **[Contributor Covenant](CODE_OF_CONDUCT.md)**.
-* **Contributing:** Review **[CONTRIBUTING.md](CONTRIBUTING.md)** before submitting pull requests.
-
+### 3. Gemini Quota / 429 Errors During Demos
+**Cause:** Google AI Studio free-tier rate limit (15 requests/min) reached.
+**Fix:** Add `GOOGLE_GENERATIVE_AI_API_KEY_B` in `.env.local`. The built-in failover wrapper will automatically swap keys transparently without crashing your demo.

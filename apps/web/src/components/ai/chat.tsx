@@ -19,6 +19,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { CitedText } from "@/components/ai/cited-text";
+import { domain } from "@/lib/domain";
 
 export interface ChatProps {
   threadId?: string;
@@ -113,7 +115,7 @@ function renderMessagePart(part: UIMessage["parts"][number], index: number) {
     case "text":
       return (
         <p key={index} className="whitespace-pre-wrap leading-relaxed">
-          {part.text}
+          <CitedText text={part.text} />
         </p>
       );
     case "reasoning":
@@ -287,27 +289,16 @@ export function Chat({
               Ask questions about this item, request summaries, or let the AI reason with tools.
             </p>
             <div className="flex flex-wrap justify-center gap-2 max-w-md">
-              <button
-                type="button"
-                onClick={() => handleQuickPrompt("Summarize this item in bullet points.")}
-                className="rounded-full border border-border bg-background px-3 py-1 text-xs text-foreground/80 hover:bg-accent transition-colors"
-              >
-                Summarize in bullet points
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickPrompt("What are the key action items?")}
-                className="rounded-full border border-border bg-background px-3 py-1 text-xs text-foreground/80 hover:bg-accent transition-colors"
-              >
-                Key action items
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickPrompt("Analyze the sentiment and themes.")}
-                className="rounded-full border border-border bg-background px-3 py-1 text-xs text-foreground/80 hover:bg-accent transition-colors"
-              >
-                Analyze themes
-              </button>
+              {domain.quickPrompts.map((prompt) => (
+                <button
+                  key={prompt}
+                  type="button"
+                  onClick={() => handleQuickPrompt(prompt)}
+                  className="rounded-full border border-border bg-background px-3 py-1 text-xs text-foreground/80 hover:bg-accent transition-colors"
+                >
+                  {prompt}
+                </button>
+              ))}
             </div>
           </div>
         ) : (
