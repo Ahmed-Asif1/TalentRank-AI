@@ -1,357 +1,115 @@
-# TalentRank AI — AI-Powered Candidate Evaluation & Talent Intelligence Platform
+# TalentRank AI
 
-[![Quality Gates](https://img.shields.io/badge/Quality_Gates-55%2F55_Passing-brightgreen?logo=vitest)](README.md#-project-status--quality-gates)
-[![Repository](https://img.shields.io/badge/GitLab-Branch_ahmed-orange?logo=gitlab)](https://gitlab.com/ahmed-group802741/talentrank-ai/-/tree/ahmed)
-[![Node.js](https://img.shields.io/badge/Node.js-22+-green?logo=node.js)](https://nodejs.org)
-[![Next.js](https://img.shields.io/badge/Next.js-16.4_Turbopack-black?logo=next.js)](https://nextjs.org)
-[![React](https://img.shields.io/badge/React-19-blue?logo=react)](https://react.dev)
-[![AI SDK](https://img.shields.io/badge/Vercel_AI_SDK-v7-black)](https://sdk.vercel.ai)
-[![Gemini](https://img.shields.io/badge/Google_Gemini-3_Flash-blue?logo=google)](https://aistudio.google.com)
-[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas_Vector_Search-green?logo=mongodb)](https://www.mongodb.com)
+[![CI](https://github.com/Ahmed-Asif1/tensorslow-aicon2k26/actions/workflows/ci.yml/badge.svg)](https://github.com/Ahmed-Asif1/tensorslow-aicon2k26/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-**TalentRank AI** is an intelligent candidate evaluation and recruitment ranking platform built for the **AICON Hackathon 2026**. It transforms manual, time-consuming candidate reviews into an automated, transparent, and bias-free pipeline powered by Google Gemini and MongoDB Atlas Vector Search.
+Candidate evaluation and talent intelligence built by **Team TensorSlow** for the **AICON Hackathon 2026**. TalentRank AI brings candidate imports, role-specific scoring, side-by-side comparison, and profile-grounded chat into one workspace.
 
-**GitLab Branch `ahmed`:** [https://gitlab.com/ahmed-group802741/talentrank-ai/-/tree/ahmed](https://gitlab.com/ahmed-group802741/talentrank-ai/-/tree/ahmed)  
-**About Team TensorSlow:** [/about](http://localhost:3000/about)  
-**Setup Guide:** [SETUP_GUIDE.md](SETUP_GUIDE.md)  
-**Architectural Explainer:** [EXPLAIN.md](EXPLAIN.md)  
-**Changelog:** [CHANGELOG.md](CHANGELOG.md)
+[Setup guide](SETUP_GUIDE.md) · [Architecture](EXPLAIN.md) · [Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
 
----
+## Features
 
-## 📋 Table of Contents
-- [Project Status & Quality Gates](#-project-status--quality-gates)
-- [Key Features & Capabilities](#-key-features--capabilities)
-- [Quickstart: 0 to Running in 3 Minutes](#-quickstart-0-to-running-in-3-minutes)
-- [Multi-Modal Candidate Ingestion](#-multi-modal-candidate-ingestion)
-- [Dynamic AI Job Criteria Engine](#-dynamic-ai-job-criteria-engine)
-- [Candidate Deep Dive & RAG Chat](#-candidate-deep-dive--rag-chat)
-- [Configuration & Environment Variables](#-configuration--environment-variables)
-- [Project Architecture & Anatomy](#-project-architecture--anatomy)
-- [Verification & Testing Matrix](#-verification--testing-matrix)
-- [Troubleshooting FAQ](#-troubleshooting-faq)
-- [Deploying to Vercel](#-deploying-to-vercel)
-- [GitLab & Workflow Guide](#-gitlab--workflow-guide)
-- [Team & Credits](#-team--credits)
+- **Role criteria:** Expand a job description into requirements, a weighted scoring rubric, and screening questions.
+- **Candidate imports:** Paste profile text, upload a PDF resume, or submit a LinkedIn URL.
+- **Ranked dashboard:** Search and filter candidates, inspect match scores, and re-evaluate profiles against an active rubric.
+- **Candidate comparison:** Compare two candidates side by side at `/compare`.
+- **Profile details and chat:** Review extracted strengths, gaps, and background, then ask questions grounded in profile context.
+- **Talent scout:** Discover candidates through Apify when configured. Without an Apify credential, the scout uses bundled sample profiles; it still needs the database and evaluation pipeline.
+- **Demo access and team page:** Explore the application through its demo flow and meet the team at `/about`.
 
----
+AI-generated scores and recommendations require human review. They are not guarantees of accuracy or freedom from bias. URL import can produce a generated fallback profile when live retrieval fails; fallback results must not be treated as verified candidate facts. Use supplied resumes or pasted source text when evaluating actual candidates.
 
-## 🚀 Project Status & Quality Gates
+## Quick start
 
-All core modules, domain registries, and automated quality gates have been implemented and independently verified:
+Requirements: **Node.js 22 or later**, npm, Git, and Docker with Compose for the included MongoDB Atlas Local service. Live AI features require configured provider access.
 
-| Pipeline Gate | Target | Status | Notes |
-| :--- | :--- | :---: | :--- |
-| **Type Integrity** | `npm run typecheck` | ✅ **PASS** | `0 errors` across monorepo |
-| **Code Style & Lint** | `npm run lint` | ✅ **PASS** | `0 errors` via ESLint 9 native flat configuration & TypeScript parser |
-| **Unit Test Suite** | `npm run test` | ✅ **PASS** | **55/55 unit tests pass** offline across 6 test suites |
-| **AI Evaluation Suite** | `npm run evals` | ✅ **PASS** | **10/10 structured extraction test cases pass** (100% pass rate) |
-| **Database Indexes** | `npm run db:indexes` | ✅ **PASS** | Compound B-tree + Atlas Vector Search (768d HNSW) validated |
-| **Data Seeding** | `npm run db:seed` | ✅ **PASS** | Idempotent candidate and telemetry seed data |
-| **Production Build** | `npm run build` | ✅ **PASS** | Next.js 16 Turbopack production build succeeds with all routes compiled |
-| **Single MongoClient** | Spec Rule 4 | ✅ **PASS** | Exactly 1 cached MongoClient instantiation in `apps/web/src/lib/db.ts` |
-
----
-
-## ✨ Key Features & Capabilities
-
-1. **🎯 Dynamic AI Job Criteria Engine**
-   - Recruiters input rough role requirements for any position (e.g. *Senior React / Next.js Engineer*).
-   - Gemini expands them into a comprehensive scoring specification:
-     - **Must-Have Requirements** (mandatory deal-breakers)
-     - **Nice-to-Haves** (bonus points)
-     - **Red Flags & Anti-Patterns** (e.g. chronic short tenures, technology mismatches)
-     - **0–100 Weighted Scoring Rubric**
-     - **Targeted Screening Interview Questions**
-   - Click **Activate Criteria** to automatically rescore existing pipeline candidates against the new rubric.
-
-2. **📥 Multi-Modal Candidate Ingestion & LinkedIn Auto-Resolution**
-   - **📋 Paste Text:** Instant, zero-friction paste of profile text, summaries, or cover letters.
-   - **📄 PDF / Resume Upload:** Multi-page parsing using `pdf-parse`. Supports resume uploads and LinkedIn's native **"Save to PDF"** exports (which bypass web truncation and preserve 100% of descriptions, dates, and skills).
-   - **🔗 Automated URL Scraper:** Headless profile fetching with automated fallback parsing.
-   - **🌐 Auto LinkedIn Detection:** Automatically extracts LinkedIn profile links from candidate text or multiline sidebar exports (`linkedin.com/in/\nusername`), displaying direct profile links in the UI.
-
-3. **⚡ AI Talent Scout — Automated LinkedIn Sourcing (PRO / Premium)**
-   - **No Cookies Required:** Uses Apify Actor `harvestapi/linkedin-profile-search` (`M2FMdjRVeF1HPGFcc`) to search live LinkedIn candidate profiles without risk of browser session authwalls (HTTP 999).
-   - **Intelligent JD-to-Filter Mapping:** Gemini analyzes freeform role requirements and maps them to exact LinkedIn search parameter IDs:
-     - Experience range IDs (`1` to `5`)
-     - Industry function IDs (`1` to `26`)
-     - Seniority level IDs (`100` to `320`)
-   - **One-Click Pipeline Ingestion:** Discovered candidates are automatically ingested into MongoDB, scored against the active job rubric with Gemini, and placed on the leaderboard.
-   - **Deterministic Fallback:** Includes a pre-scouted pool of real engineering profiles for 100% reliable hackathon judging and offline evaluation.
-
-4. **📊 Ranked Talent Leaderboard**
-   - Real-time candidate sorting by **AI Match Score** (0–100).
-   - Visual awards: 🥇 Gold, 🥈 Silver, and 🥉 Bronze badges for top candidates.
-   - Priority indicators: `critical` (immediate interview), `high`, `medium`, and `low`.
-   - Real-time KPI counters: Total candidates, AI evaluated, Top matches (≥80), and Average score.
-   - Real-time search and status filtering (`processed`, `pending`, `failed`).
-
-4. **🔍 Candidate Deep Dive (`/items/[id]`)**
-   - **Strengths Breakdown:** Bulleted evidence-backed qualifications extracted by Gemini.
-   - **Gaps & Weaknesses:** Flagged risks or missing skills for interview focus.
-   - **Hiring Verdict:** Clear, objective hiring recommendation.
-   - **Years of Experience:** Calculated career tenure.
-   - **Direct Profile Links:** One-click navigation to candidate LinkedIn profiles.
-   - **Profile Viewer:** Accessible view of original resume / profile text.
-
-5. **🔄 Instant Re-evaluation & Pipeline Management**
-   - **One-Click Re-eval:** Rescore any candidate immediately whenever job criteria changes with zero-latency UI refresh.
-   - **Candidate Deletion:** Clean removal of candidates with multi-tenant session isolation and demo-user fallback support.
-
-6. **💬 Context-Grounded RAG Chat**
-   - Recruiter assistant embedded directly in each candidate profile.
-   - Atlas Vector Search (768-dimensional embeddings via `gemini-embedding-001`) with automatic keyword fallback.
-   - Interactive source citation pills linking claims directly to verified profile history.
-
-7. **👥 Interactive Team Showcase (`/about`)**
-   - Dedicated team portal profiling all members of **Team TensorSlow** with roles, engineering contributions, match scores, and direct LinkedIn profile links.
-
-8. **⚡ Zero-Friction Judge Onboarding**
-   - Better-Auth anonymous authentication allows judges and demo viewers to explore immediately by clicking **"Launch Demo Anonymously"** or **"Login as Demo User"** without email verification.
-
----
-
-## ⚡ Quickstart: 0 to Running in 3 Minutes
-
-### Prerequisites
-- **Node.js**: `>= 22.0.0`
-- **npm**: `>= 10.x`
-- **Docker Desktop**: Running locally for MongoDB Atlas Local (with vector search support)
-- **Google Gemini API Key**: Free from [Google AI Studio](https://aistudio.google.com/app/apikey)
-
-### Step-by-Step Launch
+Run from the repository root:
 
 ```bash
-# 1. Start MongoDB Atlas Local container (includes mongod + mongot vector search)
-docker compose up -d
+git clone https://github.com/Ahmed-Asif1/tensorslow-aicon2k26.git
+cd tensorslow-aicon2k26
+npm ci
+```
 
-# 2. Copy and set up environment configuration
+Copy the environment template using the command for your shell:
+
+```powershell
+# PowerShell
+Copy-Item .env.example apps/web/.env.local
+```
+
+```bash
+# Bash
 cp .env.example apps/web/.env.local
-# Open apps/web/.env.local and add your GOOGLE_GENERATIVE_AI_API_KEY
+```
 
-# 3. Install dependencies across all workspaces
-npm install
+Skip the copy if your local configuration already exists. Configure it privately using the [setup guide](SETUP_GUIDE.md), then start the local database and app:
 
-# 4. Generate compound indexes and Atlas Vector Search index definition
+```bash
+docker compose up -d
 npm run db:indexes
-
-# 5. Populate initial demo candidate data
 npm run db:seed
-
-# 6. Launch Next.js development server
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser:
-* Click **"Launch Demo Anonymously"** or **"Login as Demo User"** to enter the candidate leaderboard.
-* Click **"🎯 Job Criteria"** in the dashboard header to generate and activate your role rubric.
-* Click **"Import Candidate"** to upload a resume or paste candidate text.
+The database commands above use the local defaults unless you supply environment variables. For a custom database, follow the explicit environment-loading commands in the setup guide. Seeding writes demo records to the selected database.
 
----
+Open [localhost:3000](http://localhost:3000), enter the demo, set role criteria, and import a candidate.
 
-## 🔑 Configuration & Environment Variables
+## Configuration
 
-Environment variables are strictly validated at runtime using Zod in [`apps/web/src/lib/env.ts`](apps/web/src/lib/env.ts).
+Keep local values in `apps/web/.env.local`, which Git ignores. The [.env.example](.env.example) template and [server environment schema](apps/web/src/lib/env.ts) describe the configuration.
 
-Configure `apps/web/.env.local`:
+| Variable | Purpose |
+| --- | --- |
+| `MONGODB_URI`, `MONGODB_DB` | Database connection and database name |
+| `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` | Authentication secret and application origin; use a unique secret outside local development |
+| `GOOGLE_GENERATIVE_AI_API_KEY` | Direct Gemini access for live AI features |
+| `GOOGLE_GENERATIVE_AI_API_KEY_B` | Optional secondary Gemini credential |
+| `AI_GATEWAY_API_KEY`, `OPENROUTER_API_KEY` | Optional provider routes; support varies by feature |
+| `CHAT_MODEL_ID` | Chat model override; availability depends on the configured provider |
+| `APIFY_API_TOKEN` | Optional live scouting; leave empty to use the sample-profile path |
+| `NEXT_PUBLIC_APP_URL` | Public application URL |
 
-```env
-# Database
-MONGODB_URI="mongodb://localhost:27017/aicon?directConnection=true"
-MONGODB_DB="aicon"
+Production builds, hosting, and live integrations require their own verification. Configure the production database, authentication origin, provider access, and network controls before deployment. Never put private credentials in a `NEXT_PUBLIC_*` variable or commit a live environment file.
 
-# Better Auth
-BETTER_AUTH_SECRET="aicon-hackathon-development-secret-key-32-chars-minimum"
-BETTER_AUTH_URL="http://localhost:3000"
-ENABLE_DEMO_LOGIN="true"
-DEMO_USER_EMAIL="demo@example.com"
+## Development and checks
 
-# AI Model Keys (Get free from https://aistudio.google.com/)
-GOOGLE_GENERATIVE_AI_API_KEY="your-gemini-api-key"
-GOOGLE_GENERATIVE_AI_API_KEY_B=""
+These scripts are defined in the root [package.json](package.json):
 
-# Optional OpenRouter Fallback
-OPENROUTER_API_KEY=""
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the web development server |
+| `npm run typecheck` | Check TypeScript |
+| `npm run lint` | Run ESLint |
+| `npm run test` | Run Vitest |
+| `npm run evals` | Run the extraction evaluation script |
+| `npm run build` | Build the web application |
+| `npm run test:e2e` | Run Playwright tests |
 
-# Chat Model: gemini-3.6-flash (recommended for fast ~2s streaming) or gemini-3.8-flash
-CHAT_MODEL_ID="gemini-3.6-flash"
+The credential-cleanup validation recorded on **21 October 2026** passed **60 unit tests across eight suites** and a TypeScript check. Those tests ran with environment-file loading and network requests disabled. This is a historical result, not a claim that every current CI gate, live integration, or production deployment has passed. See [GitHub Actions](https://github.com/Ahmed-Asif1/tensorslow-aicon2k26/actions) for current runs.
 
-# Optional: LinkedIn Session Cookie for automated URL scraper
-LINKEDIN_SESSION_COOKIE=""
+## Repository layout
+
+```text
+apps/web/
+  src/app/             Routes, dashboard, comparison, and API handlers
+  src/components/      Shared UI and chat components
+  src/lib/             Authentication, database, AI, scouting, and tests
+  src/scripts/         Database setup, seed, and evaluation scripts
+apps/api/              Optional Python sidecar scaffold
+docker-compose.yml     Local MongoDB Atlas service
 ```
 
-> **Note on Offline Testing:** The test suite (`npm run test`), evals (`npm run evals`), and production build (`npm run build`) run **100% offline and key-free**. You only need `GOOGLE_GENERATIVE_AI_API_KEY` for live AI calls.
+The main application uses Next.js, React, TypeScript, Tailwind CSS, the AI SDK, Better Auth, and MongoDB. Exact dependency versions are recorded in the workspace manifests and lockfile.
 
----
+`claude-ui/` and `claude-landing-ui/` are ignored local design-reference folders. They are not application dependencies and are excluded from the current tracked source. Earlier commits may still contain them.
 
-## 🗺️ Project Architecture & Anatomy
+## GitHub workflow
 
-```
-aicon-hackathon/
-├── apps/
-│   ├── web/                              # Full-stack Next.js 16 product
-│   │   ├── src/app/                      # Next.js App Router (Turbopack)
-│   │   │   ├── (marketing)/page.tsx      # Public landing page with Instant Demo CTA
-│   │   │   ├── (app)/dashboard/          # Talent leaderboard, KPIs, and search/filter
-│   │   │   │   ├── page.tsx              # Server component with real-time ranking
-│   │   │   │   ├── import-candidate-button.tsx # 3-tab candidate importer (Paste, PDF, URL)
-│   │   │   │   └── job-criteria-modal.tsx# Dynamic AI Job Criteria Generator
-│   │   │   ├── (app)/items/[id]/page.tsx # Candidate deep-dive & embedded RAG chat
-│   │   │   └── api/
-│   │   │       ├── criteria/route.ts     # AI rubric expansion & batch rescoring
-│   │   │       ├── scrape/route.ts       # PDF parsing & LinkedIn scraper route
-│   │   │       ├── chat/route.ts         # Streaming RAG chat route
-│   │   │       └── auth/                 # Better-Auth endpoints
-│   │   ├── src/components/
-│   │   │   ├── ai/                       # Chat, CitedText, and Structured Extraction
-│   │   │   ├── error-boundary.tsx        # UI fault tolerance wrapper
-│   │   │   └── ui/                       # Tailwind v4 UI primitives
-│   │   └── src/lib/
-│   │       ├── ai/                       # Gemini models, RAG retrieval, and prompts
-│   │       ├── items/process.ts          # Unified candidate evaluation & embedding pipeline
-│   │       ├── models/                   # Mongoose schemas (Item, JobCriteria, Chat, AiRun)
-│   │       ├── domain.ts                 # Workforce recruiting domain configuration
-│   │       └── db.ts                     # Single cached MongoClient connection pool
-│   └── api/                              # Optional Python FastAPI sidecar
-├── SETUP_GUIDE.md                        # Step-by-step local setup instructions
-├── docker-compose.yml                    # MongoDB Atlas Local container definition
-└── package.json                          # Workspace root configuration
-```
+Use feature branches and pull requests into `main`, following [CONTRIBUTING.md](CONTRIBUTING.md). Review the staged diff and exclude private configuration before committing. The repository's configured review and CI requirements govern merging.
 
----
-
-## 🧪 Verification & Testing Matrix
-
-Run the automated quality gates from the repository root:
-
-```bash
-# 1. Typecheck the entire monorepo (0 TS errors)
-npm run typecheck
-
-# 2. Lint code style (ESLint 9 Flat Config + TypeScript parser)
-npm run lint
-
-# 3. Run unit tests offline (55/55 tests passing across 6 suites)
-npm run test
-
-# 4. Run AI extraction evals (10 offline test cases)
-npm run evals
-
-# 5. Build production Next.js 16 bundle (Turbopack)
-npm run build
-```
-
----
-
-## ❓ Troubleshooting FAQ
-
-### 1. `MongoServerSelectionError: connection closed` on startup
-**Cause:** MongoDB container is not running.  
-**Fix:**
-```powershell
-docker compose up -d
-npm run db:indexes
-npm run db:seed
-```
-
-### 2. Gemini Quota / 429 Errors During Demos
-**Cause:** Google AI Studio free-tier rate limit reached.  
-**Fix:** Add `GOOGLE_GENERATIVE_AI_API_KEY_B` in `.env.local`. The system will automatically fail over to Key B without crashing.
-
-### 3. LinkedIn Anti-Bot Block
-**Cause:** LinkedIn requires authentication for profile viewing.  
-**Fix:** Use the **"PDF / Resume"** tab (upload LinkedIn's built-in **"Save to PDF"** export for 100% complete data) or the **"Paste Text"** tab. Both bypass all rate limits and authwalls.
-
----
-
-## ☁️ Deploying to Vercel
-
-**Is TalentRank AI ready for Vercel?**  
-**Yes, 100%!** The codebase is built with Next.js 16 App Router, Turbopack, and Vercel AI SDK v7. All routes compile statically/dynamically with 0 errors.
-
-### 1. MongoDB Atlas Setup (Cloud Database)
-Vercel serverless functions cannot connect to `localhost`. You need a cloud-hosted MongoDB instance:
-1. Create a free M0 cluster on [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
-2. Under **Network Access**, allow access from anywhere (`0.0.0.0/0`) since Vercel uses dynamic IP addresses.
-3. Under **Database Access**, create a user and copy the connection string:
-   ```
-   mongodb+srv://<username>:<password>@cluster0.mongodb.net/aicon?retryWrites=true&w=majority
-   ```
-
-### 2. Import Project on Vercel
-1. Go to [Vercel Dashboard](https://vercel.com) and click **"Add New Project"**.
-2. Select your repository (GitLab or GitHub mirror).
-3. In **Project Settings**:
-   - **Framework Preset**: `Next.js`
-   - **Root Directory**: `apps/web` *(important for this monorepo)*
-   - **Build Command**: `npm run build` (or leave default `next build`)
-   - **Install Command**: `npm install`
-
-### 3. Environment Variables on Vercel
-Add the following keys in your Vercel Project Settings $\rightarrow$ **Environment Variables**:
-
-| Variable | Recommended Production Value | Description |
-| :--- | :--- | :--- |
-| `MONGODB_URI` | `mongodb+srv://...` | MongoDB Atlas connection string |
-| `MONGODB_DB` | `aicon` | Database name |
-| `BETTER_AUTH_SECRET` | `(32+ random characters)` | Secret key for auth token encryption |
-| `BETTER_AUTH_URL` | `https://your-project.vercel.app` | Production app URL |
-| `GOOGLE_GENERATIVE_AI_API_KEY` | `AIzaSy...` | Gemini API key from Google AI Studio |
-| `CHAT_MODEL_ID` | `gemini-3.6-flash` | Gemini model for copilot RAG streaming |
-| `APIFY_API_TOKEN` | `apify_api_...` | Apify API token for automated LinkedIn candidate scout |
-| `ENABLE_DEMO_LOGIN` | `true` | Allows instant guest evaluation |
-| `DEMO_USER_EMAIL` | `demo@example.com` | Demo account identity |
-
-Click **Deploy**! Once deployed, run initial indexes on your Atlas cluster if needed:
-```bash
-npm run db:indexes --workspace=apps/web
-```
-
----
-
-## 🔄 GitLab & Workflow Guide
-
-### How to Push Changes to GitLab
-The repository has GitLab configured as the primary remote (`gitlab`), tracking branch `ahmed`:
-
-```bash
-# 1. Check current status and review modifications
-git status
-
-# 2. Stage your changes
-git add .
-
-# 3. Commit with a descriptive message
-git commit -m "feat: your feature description"
-
-# 4. Push to GitLab branch ahmed
-git push gitlab ahmed
-```
-
-### How to Safely Close and Reopen the Project
-
-#### To Close / Stop:
-1. **Stop Next.js Dev Server**: In the terminal running `npm run dev`, press `Ctrl + C`.
-2. **Stop MongoDB Container**:
-   ```bash
-   docker compose down
-   ```
-3. Close your IDE / terminal window.
-
-#### To Reopen / Resume:
-1. Open the project folder in terminal or VS Code / Antigravity.
-2. **Start MongoDB**:
-   ```bash
-   docker compose up -d
-   ```
-3. **Start the Dev Server**:
-   ```bash
-   npm run dev
-   ```
-4. Open [http://localhost:3000](http://localhost:3000). All candidate data, job criteria, and scoring rubrics are persisted in your local MongoDB volume.
-
----
+For setup help, see [SETUP_GUIDE.md](SETUP_GUIDE.md). Report reproducible bugs through [GitHub Issues](https://github.com/Ahmed-Asif1/tensorslow-aicon2k26/issues); follow [SECURITY.md](SECURITY.md) for private vulnerability reports.
 
 ## 👥 Team & Credits
 
@@ -369,6 +127,6 @@ git push gitlab ahmed
 * **Muhammad Hassan** — **Vector Embeddings, RAG & Semantic Search**  
   [![LinkedIn](https://img.shields.io/badge/LinkedIn-Profile-0A66C2?logo=linkedin)](https://www.linkedin.com/in/muhammad-hassan-035a78375)
 
-- **GitLab Repository (Branch `ahmed`):** [https://gitlab.com/ahmed-group802741/talentrank-ai/-/tree/ahmed](https://gitlab.com/ahmed-group802741/talentrank-ai/-/tree/ahmed)
+- **GitHub Repository:** [Ahmed-Asif1/tensorslow-aicon2k26](https://github.com/Ahmed-Asif1/tensorslow-aicon2k26)
 - **Interactive About Page:** Accessible from the top navigation menu at [`/about`](http://localhost:3000/about)
-- **License:** MIT
+- **License:** [MIT](LICENSE)

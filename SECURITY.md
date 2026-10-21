@@ -22,7 +22,7 @@ We provide security updates and patches for the following versions:
 If you discover a vulnerability or security flaw, please report it privately:
 
 1. **GitHub Security Advisory (Recommended):**
-   Navigate to the repository's [Security Advisories tab](../../security/advisories/new) and submit a private report.
+   Navigate to the repository's [private vulnerability reporting page](https://github.com/Ahmed-Asif1/tensorslow-aicon2k26/security/advisories/new) and submit a private report.
 2. **Include in your report:**
    * A clear description of the vulnerability.
    * Step-by-step instructions or proof-of-concept (PoC) to reproduce the issue.
@@ -41,7 +41,7 @@ If you discover a vulnerability or security flaw, please report it privately:
 
 ## 🛡️ Core Security Invariants in this Codebase
 
-When extending or contributing code to this starter, ensure compliance with these security principles:
+When extending or contributing code to TalentRank AI, ensure compliance with these security principles:
 * **No Client-Supplied `ownerId`:** All mutations and queries must derive the user identity from the server-validated session (`auth.api.getSession()`), never from request bodies.
 * **No Ephemeral Disk Writes:** File uploads must stream directly to cloud object storage (`@vercel/blob`).
 * **Connection Pool Protection:** Never instantiate new `MongoClient` objects per request; use the cached single client in `apps/web/src/lib/db.ts`.

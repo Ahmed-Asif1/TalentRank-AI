@@ -11,12 +11,12 @@ Imagine hiring for a competitive role: you receive hundreds of applicant resumes
 - Human fatigue leads to inconsistent scoring and bias.
 - Many profiles hide critical details behind truncated web pages.
 
-**TalentRank AI transforms candidate evaluation into an automated, transparent, and bias-free pipeline:**
-1. **Dynamic Job Rubrics:** The recruiter writes rough bullet points for any role, and Gemini expands them into a mathematically sound 0–100 rubric, dealbreakers, and targeted screening questions.
-2. **Multi-Modal Ingestion:** Ingest profiles via text paste, raw resumes, or LinkedIn's built-in **"Save to PDF"** exports (parsed with `pdf-parse` to retain 100% of un-truncated text).
-3. **Structured AI Evaluation:** Gemini extracts verified strengths, weakness flags, hiring verdicts, and tenure calculations.
+**TalentRank AI organizes candidate evaluation into a structured, AI-assisted workflow. Scores and recommendations require human review and are not guaranteed to be accurate or free from bias:**
+1. **Dynamic Job Rubrics:** The recruiter writes rough bullet points for any role, and Gemini expands them into a proposed 0–100 scoring rubric, dealbreakers, and targeted screening questions.
+2. **Multi-Modal Ingestion:** Ingest profiles via text paste, raw resumes, or LinkedIn's built-in **"Save to PDF"** exports (extraction quality depends on the document and configured providers).
+3. **Structured AI Evaluation:** Gemini proposes strengths, weakness flags, hiring recommendations, and tenure estimates for review against the source.
 4. **Ranked Leaderboard:** Candidates are ranked with Gold/Silver/Bronze badges and filtered by priority.
-5. **Context-Grounded RAG Chat:** Recruiters can drill down into any candidate's background using an AI recruiter chat grounded directly in the candidate's verified profile data.
+5. **Context-Grounded RAG Chat:** Recruiters can drill down into any candidate's background using an AI recruiter chat grounded in the supplied candidate profile data.
 
 ---
 

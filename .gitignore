@@ -95,6 +95,7 @@ claudes suggestions/
 "claudes suggestions"/
 claude ui/
 "claude ui"/
+# Local design references: keep on disk, exclude from tracked source.
 claude-ui/
 claude-landing-ui/
 claudes ui files/

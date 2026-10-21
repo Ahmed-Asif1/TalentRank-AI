@@ -1,197 +1,135 @@
-# Local Development Setup Guide — TalentRank AI
+# Local setup — TalentRank AI
 
-Welcome to **TalentRank AI**, an AI-powered talent intelligence and automated candidate evaluation platform. This step-by-step checklist will guide you through running the application locally on your machine.
-
----
+The project repository is [Ahmed-Asif1/tensorslow-aicon2k26](https://github.com/Ahmed-Asif1/tensorslow-aicon2k26). Start with the [README](README.md) for features and repository structure.
 
 ## Prerequisites
-- **Node.js** (v18+ or v20+ recommended)
-- **MongoDB** (running locally via Docker or local service on port 27017)
-- **Google Chrome** (for automated headless LinkedIn scraping via Puppeteer)
-- **Git**
 
----
+- Node.js **22 or later**, as required by the root package manifest.
+- npm and Git.
+- Docker with Compose for the included MongoDB Atlas Local service.
+- Provider access for live AI evaluation. Live scouting additionally requires Apify configuration.
 
-## Step-by-Step Checklist
+## 1. Install dependencies
 
-### 1. Install Dependencies
-Install all required Node.js packages across the workspace:
+From the cloned repository root:
+
 ```bash
-npm install
+npm ci
 ```
 
-### 2. Configure Environment Variables
-Create a file named `apps/web/.env.local` (or copy `.env.example`):
-```env
-# Database
-MONGODB_URI="mongodb://localhost:27017/aicon?directConnection=true"
-MONGODB_DB="aicon"
+This uses the committed lockfile. It installs dependencies and may run package installation scripts.
 
-# Better Auth
-BETTER_AUTH_SECRET="aicon-hackathon-development-secret-key-32-chars-minimum"
-BETTER_AUTH_URL="http://localhost:3000"
-ENABLE_DEMO_LOGIN="true"
-DEMO_USER_EMAIL="demo@example.com"
+## 2. Configure the web environment
 
-# AI Model Keys
-GOOGLE_GENERATIVE_AI_API_KEY="your-gemini-api-key"
-OPENROUTER_API_KEY=""
+If `apps/web/.env.local` does not already exist, copy [.env.example](.env.example):
 
-# Chat Model: gemini-3.6-flash (recommended for fast ~3s streaming) or gemini-3.8-flash
-CHAT_MODEL_ID="gemini-3.6-flash"
-
-# Apify API Token for automated LinkedIn candidate scout (PRO feature)
-APIFY_API_TOKEN=""
-
-# Optional: Automated LinkedIn Scraper Session Cookie
-LINKEDIN_SESSION_COOKIE=""
+```powershell
+# PowerShell
+Copy-Item .env.example apps/web/.env.local
 ```
 
-**Where to get your keys:**
-- **Google Gemini API Key (`GOOGLE_GENERATIVE_AI_API_KEY`)**: Go to [Google AI Studio](https://aistudio.google.com/app/apikey) to generate your key.
-- **Apify API Token (`APIFY_API_TOKEN`)**: Free token from [Apify](https://apify.com) powering Actor `M2FMdjRVeF1HPGFcc` for cookie-free LinkedIn candidate search.
-- **OpenRouter API Key (`OPENROUTER_API_KEY`)**: Optional fallback key from [OpenRouter](https://openrouter.ai/keys).
-- **LinkedIn Session Cookie (`LINKEDIN_SESSION_COOKIE`)**: 
-  - LinkedIn requires authentication to view profiles (unauthenticated requests are blocked with HTTP 999 Authwall).
-  - To enable live URL scraping: Open LinkedIn in your browser (logged in) $\rightarrow$ Press `F12` (DevTools) $\rightarrow$ `Application` $\rightarrow$ `Cookies` $\rightarrow$ copy the value of the `li_at` cookie $\rightarrow$ paste it into `LINKEDIN_SESSION_COOKIE`.
-  - **Zero-cookie Alternative:** You can also use the **"Paste Text"** or **"PDF / Resume"** tabs in the Import dialog to evaluate candidates with zero risk and 100% complete data.
+```bash
+# Bash
+cp .env.example apps/web/.env.local
+```
 
----
+Edit your local copy privately:
 
-### 3. Start MongoDB
-If using Docker, start MongoDB with:
+- Set `MONGODB_URI` and `MONGODB_DB` if you are not using the local defaults.
+- Use `http://localhost:3000` for the local `BETTER_AUTH_URL`.
+- Configure `GOOGLE_GENERATIVE_AI_API_KEY` for direct Gemini features. Optional provider routes do not necessarily cover every feature.
+- Leave `APIFY_API_TOKEN` empty to use bundled scout samples, or configure your own credential for live scouting.
+- Use a unique `BETTER_AUTH_SECRET` for any shared or deployed instance. The built-in development fallback is not a production secret.
+
+Never commit this file or copy credential values into issues, logs, or documentation. The [environment schema](apps/web/src/lib/env.ts) and [model registry](apps/web/src/lib/ai/models.ts) define current behavior.
+
+## 3. Start the database
+
 ```bash
 docker compose up -d
+docker compose ps
 ```
-*(Or ensure your local MongoDB service is running on `mongodb://localhost:27017`)*.
 
----
+The Compose service exposes MongoDB on port 27017 and stores its data in named Docker volumes.
 
-### 4. Seed Initial Candidates (Optional)
-To populate demo candidates:
+For the default local database, run from the repository root:
+
 ```bash
+npm run db:indexes
 npm run db:seed
 ```
 
----
+Index creation and seeding modify the selected database. Seeding is optional and supplies demo data.
 
-### 5. Start the Development Server
+The index and seed scripts do not automatically load the web app's `.env.local`. For a custom database, explicitly load that file instead:
+
+```bash
+cd apps/web
+node --env-file=.env.local --import tsx src/scripts/create-indexes.ts
+node --env-file=.env.local --import tsx src/scripts/seed.ts
+cd ../..
+```
+
+Check that your local configuration selects the intended database before running these commands.
+
+## 4. Start the app
+
+From the repository root:
+
 ```bash
 npm run dev
 ```
 
----
+Open [localhost:3000](http://localhost:3000). Use demo access, configure job criteria, and import candidate text or a resume. Candidate details provide profile chat and a comparison entry point.
 
-### 6. Access the Application
-Open your browser and navigate to:
-[http://localhost:3000](http://localhost:3000)
+Live URL retrieval and AI calls depend on external services. URL import may generate a fallback profile, and scouting may use bundled samples. These fallbacks demonstrate the workflow; they do not verify the identity or experience of a real candidate.
 
-- **Login / Demo Access:** Click "Launch Demo Anonymously" or "Login as Demo User" to view the candidate leaderboard.
-- **🎯 Dynamic Job Criteria:** Click the "Job Criteria" button in the dashboard to have Gemini expand your role requirements into a custom 0-100 rubric, must-haves, nice-to-haves, red flags, and interview questions. All candidates will automatically be rescored!
-- **⚡ AI Talent Scout (PRO):** Click the gleaming amber "AI Scout" button in the dashboard to automatically discover, scrape, and rank active candidates from LinkedIn matching your active job criteria (powered by Apify Actor `M2FMdjRVeF1HPGFcc`).
-- **📥 Import Candidates:**
-  - **Paste Text:** Paste profile text or resume directly for instant evaluation.
-  - **PDF / Resume:** Upload a resume or LinkedIn's built-in **"Save to PDF"** export for 100% un-truncated data.
-  - **URL Scrape:** Automated profile fetching.
-- **🔍 Candidate Deep Dive:** Click into any candidate to view their AI Match Score, Strengths, Weaknesses, Verdict, and chat with the AI talent recruiter using RAG grounded directly in their profile history.
-
----
-
-## 🔄 Daily Workflow: How to Close and Reopen
-
-### How to Stop / Close the Application
-1. In the terminal running `npm run dev`, press `Ctrl + C` (or `Y` when prompted).
-2. Stop the local MongoDB container:
-   ```bash
-   docker compose down
-   ```
-3. You can safely close your terminal and IDE.
-
-### How to Reopen / Resume Work
-1. Open your terminal in `c:\Users\ANC\Documents\Me\Projects\Aicon\aicon-hackathon`.
-2. Start the database:
-   ```bash
-   docker compose up -d
-   ```
-3. Start the Next.js server:
-   ```bash
-   npm run dev
-   ```
-4. Open [http://localhost:3000](http://localhost:3000). All candidate data, job criteria, and scoring rubrics are persisted in your local MongoDB volume.
-
----
-
-## 📤 How to Push to GitLab
-
-The project uses GitLab (`gitlab`) as its central repository:
+## 5. Verify changes
 
 ```bash
-# 1. Review changed files
-git status
-
-# 2. Stage changes
-git add .
-
-# 3. Commit
-git commit -m "feat: describe your change"
-
-# 4. Push to GitLab
-git push gitlab ahmed
+npm run typecheck
+npm run lint
+npm run test
+npm run evals
+npm run build
 ```
-*(Branch `ahmed` tracks `gitlab/ahmed`)*
 
----
+These are commands to run, not a promise of passing results. The README records the earlier credential-cleanup checks; current results appear in [GitHub Actions](https://github.com/Ahmed-Asif1/tensorslow-aicon2k26/actions).
 
-## ☁️ Deploying to Vercel (Production)
+## Stop and resume
 
-TalentRank AI is **100% production-ready for Vercel**!
+Stop the development server with **Ctrl+C**. To stop the local database:
 
-### Step 1: Create a Free MongoDB Atlas Database
-Because Vercel serverless functions run in the cloud, they need a hosted MongoDB Atlas cloud connection:
-1. Sign up at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) and create a free M0 Shared cluster.
-2. In **Network Access**, add `0.0.0.0/0` (Allow Access from Anywhere) so Vercel serverless lambdas can connect.
-3. In **Database Access**, create a database user and copy your connection string:
-   `mongodb+srv://<username>:<password>@cluster0.mongodb.net/?retryWrites=true&w=majority`
+```bash
+docker compose down
+```
 
-### Step 2: Import into Vercel
-1. In your [Vercel Dashboard](https://vercel.com), click **Add New** $\rightarrow$ **Project**.
-2. Connect your GitLab repository: `ahmed-group802741/talentrank-ai` (select branch `ahmed`).
-3. In **Project Settings**:
-   - **Framework Preset**: `Next.js`
-   - **Root Directory**: Click "Edit" and choose `apps/web`
-   - **Build Command**: `next build` (or leave default)
-   - **Output Directory**: `.next` (default)
-   - **Install Command**: `npm install` (default)
+This leaves the named database volumes intact. To resume, run `docker compose up -d` and `npm run dev` from the repository root.
 
-### Step 3: Set Environment Variables in Vercel
-Add the following in Vercel Settings $\rightarrow$ Environment Variables:
+## Troubleshooting
 
-| Environment Variable | Recommended Value | Notes |
-|---|---|---|
-| `MONGODB_URI` | `mongodb+srv://user:pass@cluster.mongodb.net/?retryWrites=true&w=majority` | Your MongoDB Atlas connection string |
-| `MONGODB_DB` | `aicon` | Database name |
-| `BETTER_AUTH_SECRET` | `32+ characters random string` | e.g. `cf5ca69000464c7dfae93dea1bd5d4b4d48e608989cf8310aa8e820f4f248456` |
-| `BETTER_AUTH_URL` | `https://your-project.vercel.app` | Your production Vercel URL |
-| `NEXT_PUBLIC_APP_URL` | `https://your-project.vercel.app` | Matches BETTER_AUTH_URL |
-| `GOOGLE_GENERATIVE_AI_API_KEY` | `your-gemini-key` | Google Gemini API key from AI Studio |
-| `CHAT_MODEL_ID` | `gemini-3.6-flash` | Gemini 3.6 Flash |
-| `APIFY_API_TOKEN` | `your-apify-token` | Apify token for automated candidate scouting |
-| `DEMO_USER_EMAIL` | `demo@example.com` | Demo account email |
+| Symptom | Check |
+| --- | --- |
+| MongoDB connection fails | Confirm the container is healthy, port 27017 is available, and the selected URI is correct. |
+| AI evaluation fails or hits quota | Check provider access and quota privately; use a model supported by that provider. |
+| Live scouting is unavailable | Check Apify configuration; an empty credential uses bundled samples. |
+| URL import does not retrieve real content | Import supplied resume text or a PDF and inspect the extracted content. |
+| Custom database scripts use the wrong database | Use the explicit `--env-file` commands above. |
 
-Click **Deploy**!
+## Publishing and deployment
 
----
+Contribute through GitHub feature branches and pull requests into `main`; see [CONTRIBUTING.md](CONTRIBUTING.md). Local design references in `claude-ui/` and `claude-landing-ui/` stay ignored.
 
-## 👥 Team & Credits
+For deployment, use `apps/web` as the web workspace and configure the hosted database, application origins, unique authentication secret, and required providers in the hosting environment. Review database network access and verify authentication, imports, scoring, and chat in that environment. Local tests alone do not establish production readiness.
 
-**TalentRank AI** — Built for the **AICON Hackathon 2026**
+## Team and license
 
-### 🏆 Team **TensorSlow**
-* **Muhammad Ahmed** — **Architecture, Core Engine & Full-Stack Lead**
-* **Mahad Ehtesham Hashmi** — **LinkedIn Scraping, Extraction & Data Pipelines**
-* **Abdullah Anwar** — **Deployment, Features, Better Auth & Database**
-* **Muhammad Yahya Shahzad** — **UI/UX Design System & Frontend Architecture**
-* **Muhammad Hassan** — **Vector Embeddings, RAG & Semantic Search**
+Built by **Team TensorSlow** for **AICON Hackathon 2026**:
 
-- **GitLab Repository (Branch `ahmed`):** [https://gitlab.com/ahmed-group802741/talentrank-ai/-/tree/ahmed](https://gitlab.com/ahmed-group802741/talentrank-ai/-/tree/ahmed)
-- **License:** MIT
+- **Muhammad Ahmed** — Architecture, Core Engine & Full-Stack Lead
+- **Mahad Ehtesham Hashmi** — LinkedIn Scraping, Extraction & Data Pipelines
+- **Abdullah Anwar** — Deployment, Features, Better Auth & Database
+- **Muhammad Yahya Shahzad** — UI/UX Design System & Frontend Architecture
+- **Muhammad Hassan** — Vector Embeddings, RAG & Semantic Search
+
+Licensed under [MIT](LICENSE). Full credits and profile links are in the [README](README.md).
