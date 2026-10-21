@@ -266,7 +266,19 @@ export function ImportCandidateButton() {
       toast.error("Enter a LinkedIn profile URL.");
       return;
     }
-    if (!value.includes("linkedin.com/")) {
+
+    let isValidLinkedInUrl = false;
+    try {
+      const parsedUrl = new URL(value);
+      const hostname = parsedUrl.hostname.toLowerCase();
+      isValidLinkedInUrl =
+        (parsedUrl.protocol === "https:" || parsedUrl.protocol === "http:") &&
+        (hostname === "linkedin.com" || hostname.endsWith(".linkedin.com"));
+    } catch {
+      isValidLinkedInUrl = false;
+    }
+
+    if (!isValidLinkedInUrl) {
       toast.error("Enter a valid LinkedIn URL, e.g. https://linkedin.com/in/username");
       return;
     }
