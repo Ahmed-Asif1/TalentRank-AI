@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
-  - name: 💬 Community Discussions
-    url: https://github.com/aicon-hackathon/starter/discussions
-    about: Ask questions, share ideas, and discuss architecture with fellow builders.
-  - name: 🔒 Security Advisory & Vulnerability Reporting
-    url: https://github.com/aicon-hackathon/starter/security/advisories/new
+  - name: Project documentation
+    url: https://github.com/Ahmed-Asif1/tensorslow-aicon2k26#readme
+    about: Read the setup guide, architecture overview, and contribution instructions.
+  - name: Private vulnerability reporting
+    url: https://github.com/Ahmed-Asif1/tensorslow-aicon2k26/security/advisories/new
     about: Report sensitive security vulnerabilities privately.
