@@ -1,26 +1,28 @@
 import { gateway } from "@ai-sdk/gateway";
 import { createGoogle, google } from "@ai-sdk/google";
+import { createOpenAI } from "@ai-sdk/openai";
 import type { LanguageModel, EmbeddingModel } from "ai";
 
 /**
  * Model Registry — single source of truth for all AI model references.
- * Sole owner: Agent C (Manifest item 29)
  *
  * The default route is Vercel AI Gateway when AI_GATEWAY_API_KEY is present,
  * or direct to @ai-sdk/google when using GOOGLE_GENERATIVE_AI_API_KEY.
+ *
+ * It falls back seamlessly to key B or OpenRouter (OPENROUTER_API_KEY) if quota is exhausted.
  */
 export const USE_GATEWAY = Boolean(process.env.AI_GATEWAY_API_KEY);
 
-/**
- * Helper to detect quota exhaustion or rate limits from Gemini / Google APIs.
- * Inspects HTTP status codes (429 Too Many Requests, 503 Service Unavailable),
- * error messages, response bodies, and GCP RESOURCE_EXHAUSTED status codes.
- */
+const openrouter = createOpenAI({
+  baseURL: "https://openrouter.ai/api/v1",
+  apiKey: process.env.OPENROUTER_API_KEY || "",
+});
+
 export function isQuotaError(error: unknown): boolean {
   if (!error) return false;
   const err = error as Record<string, unknown>;
   const status = (err.status ?? err.statusCode) as number | undefined;
-  if (status === 429 || status === 503) return true;
+  if (status === 429 || status === 503 || status === 502 || status === 504) return true;
 
   const errStr = (
     String(error) +
@@ -29,51 +31,51 @@ export function isQuotaError(error: unknown): boolean {
     " " +
     (typeof err.responseBody === "string" ? err.responseBody : "") +
     " " +
+    (err.cause ? String(err.cause) : "") +
+    " " +
     JSON.stringify(err.data || {})
   ).toLowerCase();
 
   return (
     errStr.includes("429") ||
     errStr.includes("503") ||
+    errStr.includes("502") ||
+    errStr.includes("504") ||
     errStr.includes("quota") ||
     errStr.includes("resource_exhausted") ||
     errStr.includes("rate limit") ||
     errStr.includes("rate_limit") ||
     errStr.includes("too many requests") ||
-    errStr.includes("unavailable")
+    errStr.includes("unavailable") ||
+    errStr.includes("enotfound") ||
+    errStr.includes("econnrefused") ||
+    errStr.includes("econnreset") ||
+    errStr.includes("etimedout") ||
+    errStr.includes("fetch failed") ||
+    errStr.includes("cannot connect to api") ||
+    errStr.includes("network error")
   );
 }
 
-/**
- * Two-key Gemini quota-fallback logic for Language Models.
- *
- * Free-tier Gemini quotas are strictly per-project (tied to the GCP project of the API key).
- * During a live stage demo or presentation, a dead key due to sudden quota exhaustion (429)
- * is a critical risk. If GOOGLE_GENERATIVE_AI_API_KEY_B is configured, this wrapper intercepts
- * quota and rate-limit errors from the primary key (GOOGLE_GENERATIVE_AI_API_KEY) and seamlessly
- * retries the call using the backup key so the demo never dies on stage.
- */
-export function getModelWithQuotaFallback(modelId: string = "gemini-3.8-flash"): LanguageModel {
+export function getModelWithQuotaFallback(modelId: string = "gemini-3.6-flash"): LanguageModel {
   const keyA = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   const keyB = process.env.GOOGLE_GENERATIVE_AI_API_KEY_B;
+  const hasOpenRouter = Boolean(process.env.OPENROUTER_API_KEY);
 
-  // If only key B is provided, route directly to key B
-  if (!keyA && keyB) {
-    return createGoogle({ apiKey: keyB })(modelId);
+  // If only OpenRouter is provided
+  if (!keyA && !keyB && hasOpenRouter) {
+    return openrouter.chat("google/gemini-pro");
   }
 
   const googleA = keyA ? createGoogle({ apiKey: keyA }) : google;
   const modelA = googleA(modelId);
+  const modelB = keyB ? createGoogle({ apiKey: keyB })(modelId) : null;
+  const modelC = hasOpenRouter ? openrouter.chat("google/gemini-pro") : null;
 
-  // If no backup key is configured, return primary model
-  if (!keyB) {
+  if (!modelB && !modelC) {
     return modelA;
   }
 
-  const googleB = createGoogle({ apiKey: keyB });
-  const modelB = googleB(modelId);
-
-  // Wrap modelA to catch quota / rate-limit errors and seamlessly fail over to modelB
   const fallbackModel: LanguageModel = {
     specificationVersion: "v4" as const,
     provider: modelA.provider || "google.generative-ai",
@@ -86,8 +88,20 @@ export function getModelWithQuotaFallback(modelId: string = "gemini-3.8-flash"):
         return await modelA.doGenerate(options);
       } catch (err) {
         if (isQuotaError(err)) {
-          console.warn(`[models] Primary Gemini key quota exceeded for ${modelId}; failing over to key B`);
-          return await modelB.doGenerate(options);
+          if (modelB) {
+            console.warn(`[models] Primary key quota exceeded for ${modelId}; failing over to key B`);
+            try { return await modelB.doGenerate(options); } catch (e) {
+               if (modelC) {
+                 console.warn(`[models] Key B quota exceeded for ${modelId}; failing over to OpenRouter`);
+                 return await modelC.doGenerate(options);
+               }
+               throw e;
+            }
+          }
+          if (modelC) {
+            console.warn(`[models] Primary key quota exceeded for ${modelId}; failing over to OpenRouter`);
+            return await modelC.doGenerate(options);
+          }
         }
         throw err;
       }
@@ -97,8 +111,20 @@ export function getModelWithQuotaFallback(modelId: string = "gemini-3.8-flash"):
         return await modelA.doStream(options);
       } catch (err) {
         if (isQuotaError(err)) {
-          console.warn(`[models] Primary Gemini key quota exceeded on stream for ${modelId}; failing over to key B`);
-          return await modelB.doStream(options);
+          if (modelB) {
+            console.warn(`[models] Primary key quota exceeded on stream for ${modelId}; failing over to key B`);
+            try { return await modelB.doStream(options); } catch(e) {
+               if (modelC) {
+                 console.warn(`[models] Key B quota exceeded on stream for ${modelId}; failing over to OpenRouter`);
+                 return await modelC.doStream(options);
+               }
+               throw e;
+            }
+          }
+          if (modelC) {
+            console.warn(`[models] Primary key quota exceeded on stream for ${modelId}; failing over to OpenRouter`);
+            return await modelC.doStream(options);
+          }
         }
         throw err;
       }
@@ -108,16 +134,9 @@ export function getModelWithQuotaFallback(modelId: string = "gemini-3.8-flash"):
   return fallbackModel;
 }
 
-/**
- * Two-key Gemini quota-fallback logic for Embedding Models.
- */
 export function getEmbeddingModelWithQuotaFallback(modelId: string = "gemini-embedding-001"): EmbeddingModel {
   const keyA = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   const keyB = process.env.GOOGLE_GENERATIVE_AI_API_KEY_B;
-
-  if (!keyA && keyB) {
-    return createGoogle({ apiKey: keyB }).embeddingModel(modelId);
-  }
 
   const googleA = keyA ? createGoogle({ apiKey: keyA }) : google;
   const modelA = googleA.embeddingModel(modelId);
@@ -140,7 +159,7 @@ export function getEmbeddingModelWithQuotaFallback(modelId: string = "gemini-emb
         return await modelA.doEmbed(options);
       } catch (err) {
         if (isQuotaError(err)) {
-          console.warn(`[models] Primary Gemini key quota exceeded for embedding ${modelId}; failing over to key B`);
+          console.warn(`[models] Primary key quota exceeded for embedding ${modelId}; failing over to key B`);
           return await modelB.doEmbed(options);
         }
         throw err;
@@ -151,9 +170,11 @@ export function getEmbeddingModelWithQuotaFallback(modelId: string = "gemini-emb
   return fallbackEmbeddingModel;
 }
 
+export const DEFAULT_CHAT_MODEL = process.env.CHAT_MODEL_ID || "gemini-3.6-flash";
+
 export const chatModel: LanguageModel = USE_GATEWAY
-  ? gateway("google/gemini-3.8-flash")
-  : getModelWithQuotaFallback("gemini-3.8-flash");
+  ? gateway(`google/${DEFAULT_CHAT_MODEL}`)
+  : getModelWithQuotaFallback(DEFAULT_CHAT_MODEL);
 
 export const fastModel: LanguageModel = USE_GATEWAY
   ? gateway("google/gemini-3.5-flash-lite")

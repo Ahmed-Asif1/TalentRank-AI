@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { X } from "lucide-react";
@@ -85,14 +86,29 @@ export function DialogContent({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   const { open, setOpen } = React.useContext(DialogContext);
+  const [mounted, setMounted] = React.useState(false);
 
-  if (!open) return null;
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+  React.useEffect(() => {
+    if (open) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [open]);
+
+  if (!open || !mounted) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
         onClick={() => setOpen(false)}
         aria-hidden="true"
       />
@@ -101,7 +117,7 @@ export function DialogContent({
         role="dialog"
         aria-modal="true"
         className={cn(
-          "relative z-50 grid w-full max-w-lg gap-4 rounded-lg border border-border bg-background p-6 shadow-lg duration-200 animate-in fade-in-0 zoom-in-95",
+          "relative z-10 grid w-full max-w-lg gap-4 rounded-xl border border-border bg-card p-6 text-foreground shadow-2xl duration-200 animate-in fade-in-0 zoom-in-95",
           className
         )}
         {...props}
@@ -110,13 +126,14 @@ export function DialogContent({
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none cursor-pointer"
+          className="absolute right-4 top-4 z-20 rounded-sm text-zinc-400 opacity-70 ring-offset-background transition-all hover:text-white hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none cursor-pointer"
         >
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

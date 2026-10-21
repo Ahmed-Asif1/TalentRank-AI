@@ -60,86 +60,62 @@ export async function seed(): Promise<void> {
   // PLACEHOLDER DOMAIN — replace when real domain is chosen
   const seedItems = [
     {
-      title: "Atlas Vector Search Architecture Guide",
-      content:
-        "MongoDB Atlas Vector Search allows developers to store vector embeddings directly alongside operational JSON documents in a single, fully managed database. By integrating hierarchical navigable small world (HNSW) and inverted file (IVF) graph indexing into MongoDB's native cluster infrastructure, teams eliminate the architectural complexity and consistency delays inherent in synchronizing data to dedicated external vector stores like Pinecone or Qdrant. For modern RAG pipelines, this means atomic updates across operational fields and high-dimensional semantic vectors.",
-      sourceUrl: "https://www.mongodb.com/docs/atlas/atlas-vector-search/",
-      mime: "text/markdown",
+      title: "Sarah Jenkins - Senior React Engineer",
+      content: "Name: Sarah Jenkins\nHeadline: Senior Frontend Engineer @ EdTechInnovators | React, Next.js, TypeScript\nSummary: Passionate about building accessible and performant learning platforms.\nExperience:\n- Senior Frontend Engineer at EdTechInnovators (2020-01 to Present)\n  Lead developer for the core student portal using Next.js App Router and Tailwind CSS.\n- Frontend Developer at CodeCamp (2017-06 to 2019-12)\n  Built interactive coding environments for kids using React and Redux.\nEducation:\n- B.S. Computer Science at University of Technology\nSkills:\nReact.js, Next.js, TypeScript, Tailwind CSS, GraphQL",
+      sourceUrl: "https://linkedin.com/in/sjenkins-mock",
+      mime: "text/plain",
       status: "processed" as const,
-      aiSummary:
-        "Architectural overview of MongoDB Atlas Vector Search combining document storage and vector indexing.",
-      aiTags: ["mongodb", "atlas", "vector-search", "architecture", "rag"],
+      aiSummary: "Strong candidate with direct EdTech experience, specifically leading Next.js App Router migrations.",
+      aiTags: ["react", "nextjs", "edtech", "typescript", "tailwind"],
+      score: 95,
+      severity: "low",
+      category: "Senior Engineer",
+      fields: {
+        strengths: ["Direct EdTech experience", "Next.js App Router expertise", "TypeScript proficiency"],
+        weaknesses: ["No backend node.js experience listed"],
+        verdict: "Strong Hire. Excellent match for our stack.",
+        yearsOfExperience: 7
+      },
       embedding: generateDeterministicEmbedding(1),
     },
     {
-      title: "AI SDK v7 Migration Notes",
-      content:
-        "The Vercel AI SDK v7 introduces key API changes designed for robust multimodal agent workflows. CoreMessage is replaced by ModelMessage, system prompts are now specified via the instructions parameter, and convertToModelMessages is strictly asynchronous. Furthermore, ToolLoopAgent replaces Experimental_Agent with a default stopWhen step limit of 20. UIMessage content parts now represent an open discriminated union supporting reasoning, tool call states, and reasoning-file attachments.",
-      sourceUrl: "https://sdk.vercel.ai/docs",
-      mime: "text/markdown",
+      title: "Michael Chen - Fullstack Developer",
+      content: "Name: Michael Chen\nHeadline: Fullstack Developer | Node.js | React\nSummary: Building scalable web applications for 4 years.\nExperience:\n- Fullstack Developer at FinTech Startup (2021-03 to Present)\n  Maintained legacy React SPA and Express backend.\n- Junior Web Developer at Local Agency (2019-08 to 2021-02)\n  Built WordPress and simple React sites.\nEducation:\n- B.A. Design at State College\nSkills:\nJavaScript, React, Node.js, Express, CSS",
+      sourceUrl: "https://linkedin.com/in/mchen-mock",
+      mime: "text/plain",
       status: "processed" as const,
-      aiSummary: "Key breaking changes and architectural patterns introduced in Vercel AI SDK v7.",
-      aiTags: ["ai-sdk", "typescript", "agents", "migration", "llm"],
+      aiSummary: "Mid-level fullstack developer with React and Node.js experience, but lacking Next.js and EdTech background.",
+      aiTags: ["react", "nodejs", "javascript", "fullstack"],
+      score: 65,
+      severity: "medium",
+      category: "Mid-level Engineer",
+      fields: {
+        strengths: ["Fullstack capabilities", "React experience"],
+        weaknesses: ["No Next.js experience", "No TypeScript mentioned", "No EdTech background"],
+        verdict: "Pass. Does not meet the strict Senior Next.js requirements.",
+        yearsOfExperience: 4
+      },
       embedding: generateDeterministicEmbedding(2),
     },
     {
-      title: "Next.js 16 App Router & Server Architecture",
-      content:
-        "Next.js 16 consolidates server conventions for hybrid full-stack applications. The legacy middleware convention is replaced by src/proxy.ts exporting a proxy function. Tailwind CSS v4 moves away from javascript configuration files toward CSS-first theme configuration using @theme directives. In serverless environments such as Vercel, persistent disk storage is not available; file uploads must stream directly to cloud object storage like Vercel Blob.",
-      sourceUrl: "https://nextjs.org/docs",
-      mime: "text/markdown",
-      status: "processed" as const,
-      aiSummary:
-        "Summary of Next.js 16 features including proxy conventions, Tailwind v4 CSS-first design, and stateless serverless architecture.",
-      aiTags: ["nextjs", "react", "serverless", "tailwind", "vercel"],
-      embedding: generateDeterministicEmbedding(3),
-    },
-    {
-      title: "Cost Governance & Observability in LLM Applications",
-      content:
-        "Monitoring token consumption and API latency is critical for production AI systems. Every LLM invocation must be logged with granular token usage metrics, including prompt cache reads (cacheReadTokens) and reasoning token output (reasoningTokens). By maintaining an audit trail in the aiRuns collection, engineering teams can detect runaway loops, evaluate model latency regressions, and enforce per-user rate limits.",
-      sourceUrl: "https://ai.google.dev/pricing",
-      mime: "text/markdown",
-      status: "processed" as const,
-      aiSummary:
-        "Best practices for logging LLM token metrics, latency, and cost attribution in production.",
-      aiTags: ["observability", "token-tracking", "cost-governance", "ai-runs", "monitoring"],
-      embedding: generateDeterministicEmbedding(4),
-    },
-    {
-      title: "Structured Output Extraction with Zod and Gemini",
-      content:
-        "Extracting structured JSON from unstructured text requires strict schema contracts and resilient error handling. When using Gemini structured output through generateObject, schemas should leverage z.coerce, optional fields, and .catch() fallbacks to absorb minor variations in model responses. Structured data can then be persisted directly into validated Mongoose models.",
-      sourceUrl: "https://ai.google.dev/docs",
-      mime: "text/markdown",
-      status: "processed" as const,
-      aiSummary:
-        "Guidelines for implementing resilient structured output extraction using Zod and Gemini models.",
-      aiTags: ["structured-output", "zod", "gemini", "json-schema", "data-extraction"],
-      embedding: generateDeterministicEmbedding(5),
-    },
-    {
-      title: "Anonymous-First Authentication Patterns",
-      content:
-        "User onboarding friction is a leading cause of drop-off in demo and evaluation environments. Implementing an anonymous-first authentication flow with Better Auth enables immediate session creation without requiring email verification or password entry. When users decide to persist their workspaces permanently, the anonymous session is linked to an authenticated credential without losing existing items or chat histories.",
-      sourceUrl: "https://better-auth.com/docs",
-      mime: "text/markdown",
-      status: "processed" as const,
-      aiSummary:
-        "Strategies for zero-friction anonymous authentication with seamless account linking using Better Auth.",
-      aiTags: ["auth", "better-auth", "ux", "onboarding", "security"],
-      embedding: generateDeterministicEmbedding(6),
-    },
-    {
-      title: "Draft Note: Real-time Audio Streaming with Live API",
-      content:
-        "Exploring real-time bidirectional audio streaming using WebSockets and the Gemini Live API. Initial testing shows low-latency turn-taking with built-in voice activity detection (VAD). Documenting integration points for future voice interaction experiments.",
+      title: "Elena Rodriguez - Frontend Architect",
+      content: "Name: Elena Rodriguez\nHeadline: Frontend Architect & Performance Expert\nSummary: 10 years of experience building massive scale UIs.\nExperience:\n- Frontend Architect at E-Commerce Giant (2018-05 to Present)\n  Spearheaded migration to Next.js resulting in 40% LCP improvement.\n- Lead UI Engineer at SaaS Corp (2014-02 to 2018-04)\nEducation:\n- M.S. Computer Engineering\nSkills:\nNext.js, React, Web Performance, TypeScript, System Design",
+      sourceUrl: "https://linkedin.com/in/erodriguez-mock",
       mime: "text/plain",
-      status: "pending" as const,
-      aiSummary:
-        "Initial exploration of bidirectional WebSocket streaming and voice interaction using the Gemini Live API.",
-      aiTags: ["live-api", "audio", "websockets", "voice", "streaming"],
-    },
+      status: "processed" as const,
+      aiSummary: "Highly experienced architect with deep Next.js performance tuning skills.",
+      aiTags: ["nextjs", "architecture", "performance", "typescript", "react"],
+      score: 88,
+      severity: "low",
+      category: "Architect",
+      fields: {
+        strengths: ["Exceptional Next.js expertise", "10 years experience", "Performance tuning"],
+        weaknesses: ["Overqualified", "No explicit EdTech background"],
+        verdict: "Strong candidate for a technical leadership role, though lacks specific EdTech context.",
+        yearsOfExperience: 10
+      },
+      embedding: generateDeterministicEmbedding(3),
+    }
   ];
 
   // Upsert items by ownerId and title for idempotency, sanitizing undefined fields so BSON never writes null
@@ -277,7 +253,7 @@ export async function seed(): Promise<void> {
   const seedAiRuns = [
     {
       feature: "chat" as const,
-      model: "gemini-2.5-flash",
+      model: "gemini-3.6-flash",
       inputTokens: 120,
       outputTokens: 85,
       reasoningTokens: 32,
@@ -289,7 +265,7 @@ export async function seed(): Promise<void> {
     },
     {
       feature: "extract" as const,
-      model: "gemini-2.5-flash",
+      model: "gemini-3.6-flash",
       inputTokens: 350,
       outputTokens: 110,
       reasoningTokens: 0,
@@ -301,7 +277,7 @@ export async function seed(): Promise<void> {
     },
     {
       feature: "embed" as const,
-      model: "text-embedding-004",
+      model: "gemini-embedding-001",
       inputTokens: 240,
       outputTokens: 0,
       reasoningTokens: 0,
@@ -313,7 +289,7 @@ export async function seed(): Promise<void> {
     },
     {
       feature: "rag" as const,
-      model: "gemini-2.5-flash",
+      model: "gemini-3.6-flash",
       inputTokens: 850,
       outputTokens: 220,
       reasoningTokens: 64,
@@ -325,7 +301,7 @@ export async function seed(): Promise<void> {
     },
     {
       feature: "chat" as const,
-      model: "gemini-2.5-flash",
+      model: "gemini-3.6-flash",
       inputTokens: 150,
       outputTokens: 0,
       reasoningTokens: 0,

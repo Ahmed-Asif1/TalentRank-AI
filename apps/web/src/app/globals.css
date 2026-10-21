@@ -1,61 +1,117 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #FAFAFF;
-  --color-foreground: #191A2C;
-  --color-card: #FFFFFF;
-  --color-card-foreground: #191A2C;
-  --color-popover: #FFFFFF;
-  --color-popover-foreground: #191A2C;
-  --color-primary: #4F46E5;
-  --color-primary-foreground: #FFFFFF;
-  --color-secondary: #EEF0FF;
-  --color-secondary-foreground: #28264B;
-  --color-muted: #F1F2F8;
-  --color-muted-foreground: #5B6078;
-  --color-accent: #E8E9FF;
-  --color-accent-foreground: #302F73;
-  --color-destructive: #B4233C;
-  --color-destructive-foreground: #FFFFFF;
-  /* Light-mode borders are decorative hairlines, not WCAG 1.4.11 meaningful
-     boundaries. Kept subtle (1.30:1 vs white) so cards read as surfaces, not as
-     outlined wireframe boxes. */
-  --color-border: #DFE1EA;
-  --color-input: #DFE1EA;
-  --color-ring: #4F46E5;
+  /* Surfaces: deep warm charcoal, stepped with subtle contrast layering. */
+  --color-background: #0d0d0f;
+  --color-foreground: #f5f5f7; /* Warm alabaster off-white avoiding stark #ffffff */
+  --color-card: #151518;
+  --color-card-foreground: #f5f5f7;
+  --color-popover: #18181c;
+  --color-popover-foreground: #f5f5f7;
+  --color-well: #101012;
 
-  --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
+  --color-primary: #f5f5f7;
+  --color-primary-foreground: #0d0d0f;
+  --color-secondary: #18181c;
+  --color-secondary-foreground: #f5f5f7;
+  --color-muted: #141416;
+  --color-muted-foreground: #9ca3af;
+  --color-accent: #18181c;
+  --color-accent-foreground: #f5f5f7;
+  --color-destructive: #b4553a;
+  --color-destructive-foreground: #fafafa;
+  --color-border: rgb(255 255 255 / 0.065);
+  --color-input: rgb(255 255 255 / 0.08);
+  --color-ring: #7c8ba1;
+
+  /* Status and accent colors. Muted on purpose: they inform, they don't shout. */
+  --color-sage: #6b9080; /* strong fit, success */
+  --color-ochre: #c29b38; /* potential, caution */
+  --color-terracotta: #c86d51; /* risk, red flag, unqualified */
+  --color-steel: #7c8ba1; /* links and neutral accents */
+
+  /* Continuous, squircle-like curves. rounded-xl is the standard for panels. */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+
+  --font-sans: var(--font-sans-loaded, "Geist"), "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-serif: var(--font-serif-loaded, "Newsreader"), "Charter", "Iowan Old Style", Georgia, ui-serif, serif;
+  --font-mono: var(--font-mono-loaded, "Geist Mono"), "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: #11131B;
-    --color-foreground: #E8E9F2;
-    --color-card: #191C27;
-    --color-card-foreground: #E8E9F2;
-    --color-popover: #202433;
-    --color-popover-foreground: #E8E9F2;
-    --color-primary: #A5B4FC;
-    --color-primary-foreground: #17192A;
-    --color-secondary: #272B3A;
-    --color-secondary-foreground: #E5E7F4;
-    --color-muted: #242735;
-    --color-muted-foreground: #BEC3D7;
-    --color-accent: #302F58;
-    --color-accent-foreground: #D8D6FF;
-    --color-destructive: #FF7180;
-    --color-destructive-foreground: #2A1118;
-    /* Visible enough to delineate surfaces on dark, but not loud (1.63:1 vs card). */
-    --color-border: #3A3F52;
-    --color-input: #3A3F52;
-    --color-ring: #A5B4FC;
+/* Elevation via Micro-Borders (Border Glows): inner 1px border on cards with low-opacity white */
+@utility shadow-raised {
+  box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.06), inset 0 0 0 1px rgb(255 255 255 / 0.02);
+}
+
+/* Reserved for floating modals, menus, and drawers */
+@utility shadow-overlay {
+  box-shadow: 0 8px 32px rgb(0 0 0 / 0.45), inset 0 1px 0 0 rgb(255 255 255 / 0.08);
+}
+
+/* Micro-border card glow */
+@utility card-glow {
+  box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.07), inset 0 0 0 1px rgb(255 255 255 / 0.025);
+}
+
+/* Themed subtle gradient pills: transitioning from base background to tinted highlights */
+@utility badge-gradient-sage {
+  background-image: linear-gradient(180deg, rgb(107 144 128 / 0.16) 0%, rgb(107 144 128 / 0.04) 100%);
+  border-color: rgb(107 144 128 / 0.28);
+}
+
+@utility badge-gradient-ochre {
+  background-image: linear-gradient(180deg, rgb(194 155 56 / 0.16) 0%, rgb(194 155 56 / 0.04) 100%);
+  border-color: rgb(194 155 56 / 0.28);
+}
+
+@utility badge-gradient-terracotta {
+  background-image: linear-gradient(180deg, rgb(200 109 81 / 0.16) 0%, rgb(200 109 81 / 0.04) 100%);
+  border-color: rgb(200 109 81 / 0.28);
+}
+
+@utility badge-gradient-neutral {
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.06) 0%, rgb(255 255 255 / 0.02) 100%);
+  border-color: rgb(255 255 255 / 0.08);
+}
+
+@layer base {
+  *,
+  ::after,
+  ::before {
+    border-color: var(--color-border);
+  }
+
+  html {
+    color-scheme: dark;
+    scrollbar-color: #26262a transparent;
+  }
+
+  ::selection {
+    background: rgb(107 144 128 / 0.25);
+    color: #f5f5f7;
+  }
+
+  /* One stroke weight for every Lucide icon in the app. */
+  .lucide {
+    stroke-width: 1.5;
   }
 }
 
 body {
   color: var(--color-foreground);
-  background: var(--color-background);
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--color-background);
+  /* Top-anchored massive diffuse radial gradient: soft slate blue & warm charcoal */
+  background-image:
+    radial-gradient(ellipse 1100px 650px at 50% -60px, rgb(85 125 185 / 0.18), transparent 75%),
+    radial-gradient(ellipse 850px 500px at 85% 0px, rgb(105 155 130 / 0.12), transparent 65%);
+  background-attachment: fixed;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

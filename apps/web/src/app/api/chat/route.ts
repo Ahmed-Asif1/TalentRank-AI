@@ -125,17 +125,19 @@ export async function POST(req: Request): Promise<Response> {
 
   let context: RagResultItem[] = [];
   try {
-    context = await retrieveContext(question, ownerId, 4);
     if (itemId && mongoose.Types.ObjectId.isValid(itemId)) {
       await connectMongoose();
       const focus = await ItemModel.findOne({ _id: itemId, ownerId }).lean();
       if (focus) {
-        const id = String(focus._id);
-        context = [
-          { id, title: focus.title, content: focus.content ?? "", score: 1 },
-          ...context.filter((c) => c.id !== id),
-        ];
+        context.push({
+          id: String(focus._id),
+          title: focus.title,
+          content: focus.content ?? "",
+          score: 1,
+        });
       }
+    } else {
+      context = await retrieveContext(question, ownerId, 4);
     }
   } catch (ragErr) {
     logger.warn("[chat] Context retrieval failed; answering without sources", { error: String(ragErr) });
@@ -150,6 +152,15 @@ export async function POST(req: Request): Promise<Response> {
     messages: await convertToModelMessages(messages as unknown as Parameters<typeof convertToModelMessages>[0]),
     tools: createTools(ownerId),
     stopWhen: isStepCount(5),
+    maxOutputTokens: 2500,
+    providerOptions: {
+      google: {
+        thinkingConfig: {
+          thinkingLevel: "low",
+          includeThoughts: true,
+        },
+      },
+    },
     onFinish: async ({ text, usage }) => {
       const latencyMs = Date.now() - startTime;
       try {
@@ -238,7 +249,7 @@ export async function POST(req: Request): Promise<Response> {
         const modelId =
           typeof chatModel === "object" && chatModel !== null && "modelId" in chatModel
             ? String(chatModel.modelId)
-            : "gemini-3.8-flash";
+            : "gemini-3.6-flash";
 
         await AiRunModel.create({
           ownerId,

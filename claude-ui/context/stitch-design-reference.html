@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TalentRank AI — Executive AI Talent Evaluation</title>
+<!-- Material Symbols & Typography -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&amp;family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS with custom configuration -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "secondary-fixed": "#68fcbf",
+            "inverse-surface": "#e1e2ea",
+            "primary-fixed": "#e2e2e2",
+            "surface-bright": "#36393f",
+            "on-primary-fixed": "#1a1c1c",
+            "on-error-container": "#ffdad6",
+            "surface-dim": "#111319",
+            "on-tertiary": "#402d00",
+            "on-surface": "#e1e2ea",
+            "on-error": "#690005",
+            "on-background": "#e1e2ea",
+            "on-secondary-container": "#00452e",
+            "primary-container": "#e2e2e2",
+            "tertiary": "#ffffff",
+            "background": "#111319",
+            "surface-container-highest": "#32353b",
+            "surface-container-low": "#191c21",
+            "on-tertiary-fixed-variant": "#5c4300",
+            "surface-variant": "#32353b",
+            "tertiary-fixed": "#ffdf9f",
+            "surface-container": "#1d2025",
+            "outline": "#8e9192",
+            "surface-container-lowest": "#0b0e13",
+            "error": "#ffb4ab",
+            "error-container": "#93000a",
+            "on-tertiary-container": "#815f00",
+            "tertiary-fixed-dim": "#f9bd22",
+            "primary-fixed-dim": "#c6c6c7",
+            "tertiary-container": "#ffdf9f",
+            "secondary-container": "#00bd85",
+            "inverse-on-surface": "#2e3036",
+            "secondary": "#45dfa4",
+            "outline-variant": "#444748",
+            "on-tertiary-fixed": "#261a00",
+            "primary": "#ffffff",
+            "on-primary-fixed-variant": "#454747",
+            "on-primary": "#2f3131",
+            "on-secondary-fixed": "#002114",
+            "surface-container-high": "#272a30",
+            "on-secondary": "#003825",
+            "on-surface-variant": "#c4c7c8",
+            "inverse-primary": "#5d5f5f",
+            "surface-tint": "#c6c6c7",
+            "on-primary-container": "#636565",
+            "secondary-fixed-dim": "#45dfa4",
+            "surface": "#111319",
+            "on-secondary-fixed-variant": "#005137"
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          spacing: {
+            "margin-mobile": "1rem",
+            "space-xl": "2.5rem",
+            "gutter-mobile": "0.75rem",
+            "gutter": "1.5rem",
+            "space-md": "1rem",
+            "space-lg": "1.5rem",
+            "space-sm": "0.5rem",
+            "space-xs": "0.25rem",
+            "margin": "2.5rem"
+          },
+          fontFamily: {
+            "label-xs": ["Geist"],
+            "headline-lg-mobile": ["Newsreader"],
+            "body-sm": ["Geist"],
+            "headline-sm": ["Geist"],
+            "metric-display": ["Geist"],
+            "display": ["Newsreader"],
+            "headline-lg": ["Newsreader"],
+            "quote-lead": ["Newsreader"],
+            "headline-md": ["Geist"],
+            "body-md": ["Geist"],
+            "label-md": ["Geist"],
+            "body-lg": ["Geist"]
+          },
+          fontSize: {
+            "label-xs": ["10px", { lineHeight: "14px", letterSpacing: "0.08em", fontWeight: "600" }],
+            "headline-lg-mobile": ["28px", { lineHeight: "36px", letterSpacing: "-0.01em", fontWeight: "400" }],
+            "body-sm": ["13px", { lineHeight: "18px", letterSpacing: "0.005em", fontWeight: "400" }],
+            "headline-sm": ["18px", { lineHeight: "26px", letterSpacing: "-0.005em", fontWeight: "500" }],
+            "metric-display": ["32px", { lineHeight: "36px", letterSpacing: "-0.03em", fontWeight: "400" }],
+            "display": ["48px", { lineHeight: "56px", letterSpacing: "-0.02em", fontWeight: "400" }],
+            "headline-lg": ["36px", { lineHeight: "44px", letterSpacing: "-0.015em", fontWeight: "400" }],
+            "quote-lead": ["20px", { lineHeight: "30px", letterSpacing: "0em", fontWeight: "400" }],
+            "headline-md": ["24px", { lineHeight: "32px", letterSpacing: "-0.01em", fontWeight: "500" }],
+            "body-md": ["14px", { lineHeight: "22px", letterSpacing: "0em", fontWeight: "400" }],
+            "label-md": ["12px", { lineHeight: "16px", letterSpacing: "0.04em", fontWeight: "500" }],
+            "body-lg": ["16px", { lineHeight: "24px", letterSpacing: "0em", fontWeight: "400" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 350, 'GRAD' 0, 'opsz' 20;
+      line-height: 1;
+      display: inline-flex;
+      vertical-align: middle;
+    }
+    .custom-radial-glow {
+      background: radial-gradient(ellipse 65% 40% at 50% 0%, rgba(255, 255, 255, 0.05) 0%, rgba(17, 19, 25, 0) 75%);
+    }
+    .specular-rim {
+      box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+    }
+    .specular-subtle {
+      box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.04);
+    }
+    /* Thin custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0b0e13;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #272a30;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #444748;
+    }
+  </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface font-body-md antialiased selection:bg-secondary/20 selection:text-secondary min-h-screen relative overflow-x-hidden">
+<!-- Ambient Atmospheric Slate Radial Diffusion -->
+<div class="pointer-events-none fixed inset-0 custom-radial-glow z-0"></div>
+<!-- Shared Component: SideNavBar (Fixed Left Architecture) -->
+<aside class="fixed top-0 left-0 h-full w-64 flex flex-col justify-between p-space-md z-40 bg-surface-container-lowest border-r border-outline-variant/20 shadow-none select-none">
+<div class="flex flex-col gap-space-md">
+<!-- Monogram & Brand Header -->
+<div class="flex items-center gap-3 px-space-sm py-space-xs">
+<div class="w-8 h-8 rounded-lg bg-surface-container-high border border-outline-variant/40 flex items-center justify-center specular-rim text-primary">
+<svg class="w-4 h-4 fill-current" viewbox="0 0 24 24">
+<path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"></path>
+</svg>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm font-medium tracking-tight text-primary">TalentRank AI</span>
+<span class="font-label-xs text-label-xs text-outline tracking-wider">Executive Suite</span>
+</div>
+</div>
+<!-- Navigation Tabs Cluster -->
+<nav class="flex flex-col gap-1 mt-space-sm">
+<a class="flex items-center gap-space-sm text-on-surface-variant rounded-lg px-space-md py-space-sm font-normal hover:bg-surface-container hover:text-primary transition-all duration-150 active:scale-[0.99]" href="#">
+<span class="material-symbols-outlined text-[19px]">dashboard</span>
+<span class="font-label-md text-label-md">Overview</span>
+</a>
+<!-- Active Tab: Live Leaderboard mapped directly -->
+<a class="flex items-center gap-space-sm bg-surface-container-high text-primary rounded-lg px-space-md py-space-sm font-medium border border-outline-variant/40 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[19px] text-secondary">leaderboard</span>
+<span class="font-label-md text-label-md">Live Leaderboard</span>
+<span class="ml-auto w-1.5 h-1.5 rounded-full bg-secondary shadow-[0_0_8px_rgba(69,223,164,0.6)]"></span>
+</a>
+<a class="flex items-center gap-space-sm text-on-surface-variant rounded-lg px-space-md py-space-sm font-normal hover:bg-surface-container hover:text-primary transition-all duration-150 active:scale-[0.99]" href="#">
+<span class="material-symbols-outlined text-[19px]">person_search</span>
+<span class="font-label-md text-label-md">Dossier Review</span>
+</a>
+<a class="flex items-center gap-space-sm text-on-surface-variant rounded-lg px-space-md py-space-sm font-normal hover:bg-surface-container hover:text-primary transition-all duration-150 active:scale-[0.99]" href="#">
+<span class="material-symbols-outlined text-[19px]">rule</span>
+<span class="font-label-md text-label-md">Rubric Engine</span>
+</a>
+<a class="flex items-center gap-space-sm text-on-surface-variant rounded-lg px-space-md py-space-sm font-normal hover:bg-surface-container hover:text-primary transition-all duration-150 active:scale-[0.99]" href="#">
+<span class="material-symbols-outlined text-[19px]">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</nav>
+</div>
+<!-- SideNav Bottom Cluster -->
+<div class="flex flex-col gap-3 pt-space-md border-t border-outline-variant/20">
+<!-- CTA button from JSON -->
+<button class="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary font-label-md text-label-md border border-outline-variant/30 specular-subtle transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined text-[17px]">ios_share</span>
+<span>Export Dossier</span>
+</button>
+<!-- Footer Tabs -->
+<div class="flex flex-col gap-1">
+<a class="flex items-center gap-space-sm text-on-surface-variant hover:text-primary rounded-lg px-space-md py-1.5 font-normal transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+<span class="font-label-md text-label-md">Audit Trail</span>
+</a>
+<a class="flex items-center gap-space-sm text-on-surface-variant hover:text-primary rounded-lg px-space-md py-1.5 font-normal transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]">help_outline</span>
+<span class="font-label-md text-label-md">Help &amp; Guide</span>
+</a>
+</div>
+<!-- Engine Status Pill -->
+<div class="px-space-md py-2 rounded-md bg-surface-container-low/60 border border-outline-variant/20 flex items-center justify-between">
+<span class="font-label-xs text-label-xs text-outline">EVAL ENGINE v2.4</span>
+<span class="flex items-center gap-1 font-label-xs text-label-xs text-secondary">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Live
+        </span>
+</div>
+</div>
+</aside>
+<!-- Main Canvas Wrapper (offset by left sidebar 16rem = 256px) -->
+<div class="pl-64 min-h-screen flex flex-col relative z-10">
+<!-- Shared Component: TopNavBar -->
+<header class="sticky top-0 z-30 bg-surface/90 backdrop-blur-md border-b border-outline-variant/30 shadow-sm">
+<div class="flex justify-between items-center w-full px-space-xl py-space-sm max-w-full mx-auto">
+<!-- Left: Search & Active Role Pill Capsule -->
+<div class="flex items-center gap-4 flex-1 max-w-2xl">
+<!-- Active Role Capsule Pill -->
+<div class="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-surface-container-high/70 border border-outline-variant/40 specular-subtle cursor-pointer hover:border-outline/50 transition-colors">
+<span class="w-2 h-2 rounded-full bg-secondary shadow-[0_0_8px_rgba(69,223,164,0.7)] animate-pulse"></span>
+<span class="font-headline-sm text-[13px] font-medium text-primary tracking-tight">Senior Next.js / React Engineer</span>
+<span class="px-1.5 py-0.5 rounded-full bg-surface-container font-label-xs text-label-xs text-on-surface-variant border border-outline-variant/30">(9 evaluated)</span>
+<span class="material-symbols-outlined text-outline text-[16px]">expand_more</span>
+</div>
+<!-- Global Search Input with shortcut -->
+<div class="relative flex-1 max-w-md">
+<span class="absolute inset-y-0 left-3 flex items-center pointer-events-none text-outline">
+<span class="material-symbols-outlined text-[18px]">search</span>
+</span>
+<input class="w-full bg-surface-container-lowest/80 border border-outline-variant/40 text-on-surface placeholder-outline text-body-sm font-body-sm rounded-lg pl-9 pr-10 py-1.5 focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/20 transition-all" placeholder="Search candidates, skills, or dossiers... ⌘K" type="text"/>
+<span class="absolute inset-y-0 right-3 flex items-center pointer-events-none font-label-xs text-[10px] text-outline border border-outline-variant/40 px-1 py-0.5 rounded bg-surface-container-high h-fit my-auto">
+              ⌘K
+            </span>
+</div>
+</div>
+<!-- Center: Navigation Links from JSON -->
+<nav class="hidden xl:flex items-center gap-6 px-4">
+<a class="text-primary font-medium border-b border-primary pb-1 font-label-md text-label-md" href="#">Candidates</a>
+<a class="text-on-surface-variant font-label-md text-label-md hover:text-primary transition-colors" href="#">Pipelines</a>
+<a class="text-on-surface-variant font-label-md text-label-md hover:text-primary transition-colors" href="#">Benchmarks</a>
+<a class="text-on-surface-variant font-label-md text-label-md hover:text-primary transition-colors" href="#">Analytics</a>
+</nav>
+<!-- Right Trailing Actions -->
+<div class="flex items-center gap-3">
+<!-- Trailing Secondary: Job Criteria -->
+<button class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-container-high/60 border border-outline-variant/40 hover:bg-surface-container hover:border-outline/50 text-primary font-label-md text-label-md specular-subtle transition-all active:scale-[0.98]">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span>Job Criteria</span>
+<span class="font-label-xs text-label-xs text-outline px-1 rounded bg-surface-container-lowest">8 Weights</span>
+</button>
+<!-- Trailing Primary Action: + Import Candidate (Solid white rounded-full pill) -->
+<button class="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary text-surface-container-lowest font-body-md font-medium hover:bg-primary-container specular-rim transition-all active:scale-[0.98] shadow-sm">
+<span class="font-semibold text-sm">+</span>
+<span class="font-label-md text-label-md tracking-tight font-semibold">Import Candidate</span>
+</button>
+<div class="h-4 w-px bg-outline-variant/40 mx-1"></div>
+<!-- Trailing Icon Actions -->
+<button class="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors relative" title="Notifications">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-secondary"></span>
+</button>
+<button class="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors" title="Fine Tune">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+</button>
+<!-- Profile Avatar with Status Ring -->
+<div class="relative ml-1 cursor-pointer group">
+<div class="w-8 h-8 rounded-full ring-1 ring-outline-variant/60 group-hover:ring-primary/60 transition-all overflow-hidden bg-surface-container-high flex items-center justify-center">
+<span class="font-headline-sm text-xs font-semibold text-primary">EV</span>
+</div>
+<span class="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-secondary ring-2 ring-surface"></span>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 px-space-xl py-space-lg flex flex-col gap-6 max-w-[1600px] w-full mx-auto">
+<!-- Sub-Header Context & Pipeline Bar -->
+<section class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 pb-4 border-b border-outline-variant/20">
+<div>
+<div class="flex items-center gap-2 mb-1.5">
+<span class="font-label-xs text-label-xs uppercase tracking-widest text-secondary font-medium">Evaluation Workspace</span>
+<span class="text-outline text-xs">•</span>
+<span class="font-label-xs text-label-xs text-outline">Deterministic Rubric v2.4</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-primary tracking-tight">Executive Evaluation Leaderboard</h1>
+<p class="font-quote-lead text-quote-lead italic text-on-surface-variant font-display mt-0.5 max-w-3xl">
+            Deterministic LLM rubric scoring across architecture, performance, and craftsmanship benchmarks.
+          </p>
+<!-- Quick Role Metadata Strip -->
+<div class="flex flex-wrap items-center gap-y-1.5 gap-x-4 mt-3 text-body-sm font-body-sm text-outline">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-on-surface-variant">domain</span>
+<span>Dept: <strong class="font-normal text-on-surface">Core Product Engineering</strong></span>
+</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-on-surface-variant">person</span>
+<span>Hiring Manager: <strong class="font-normal text-on-surface">Elena Vance (VP Eng)</strong></span>
+</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-on-surface-variant">calendar_today</span>
+<span>Target Start: <strong class="font-normal text-on-surface">Q2 2025</strong></span>
+</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="flex items-center gap-1.5 text-secondary">
+<span class="material-symbols-outlined text-[15px]">neurology</span>
+<span>Claude 3.5 Sonnet Rubric v2.4</span>
+</span>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex items-center gap-2.5 shrink-0">
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-surface-container-high/80 border border-outline-variant/30 text-on-surface hover:text-primary hover:border-outline/50 font-label-md text-label-md specular-subtle transition-all">
+<span class="material-symbols-outlined text-[16px]">file_download</span>
+<span>Export Dossier</span>
+</button>
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-surface-container-high/80 border border-outline-variant/30 text-on-surface hover:text-primary hover:border-outline/50 font-label-md text-label-md specular-subtle transition-all">
+<span class="material-symbols-outlined text-[16px]">checklist</span>
+<span>Batch Actions</span>
+</button>
+</div>
+</section>
+<!-- Bento Grid KPI Metric Cards (4 Cards) -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+<!-- Card 1: Total Candidates -->
+<div class="p-4 rounded-xl bg-surface-container-low/80 border border-white/[0.08] specular-rim flex flex-col justify-between hover:border-white/[0.15] transition-all group">
+<div class="flex items-center justify-between text-outline">
+<span class="font-label-xs text-label-xs tracking-wider uppercase">Total Candidates</span>
+<div class="w-7 h-7 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[17px]">group</span>
+</div>
+</div>
+<div class="my-3 flex items-baseline gap-2.5">
+<span class="font-metric-display text-metric-display font-medium text-primary tracking-tight">9</span>
+<span class="font-label-xs text-label-xs text-secondary flex items-center gap-0.5 bg-secondary/10 px-1.5 py-0.5 rounded-full border border-secondary/20">
+<span class="material-symbols-outlined text-[12px]">trending_up</span> +33% wk
+            </span>
+</div>
+<div class="font-body-sm text-[12px] text-outline flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">sync</span>
+<span>+3 queued from LinkedIn &amp; GitHub</span>
+</div>
+</div>
+<!-- Card 2: Top Matches (>=80%) -->
+<div class="p-4 rounded-xl bg-surface-container-low/80 border border-white/[0.08] specular-rim flex flex-col justify-between hover:border-white/[0.15] transition-all group relative overflow-hidden">
+<div class="absolute -right-4 -top-4 w-20 h-20 bg-secondary/5 rounded-full blur-xl pointer-events-none"></div>
+<div class="flex items-center justify-between text-outline">
+<span class="font-label-xs text-label-xs tracking-wider uppercase text-secondary">Top Matches (≥80%)</span>
+<div class="w-7 h-7 rounded-lg bg-secondary/10 border border-secondary/20 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[17px]">verified</span>
+</div>
+</div>
+<div class="my-3 flex items-baseline gap-2.5">
+<span class="font-metric-display text-metric-display font-medium text-primary tracking-tight">2</span>
+<span class="font-label-xs text-label-xs text-secondary bg-secondary/10 px-2 py-0.5 rounded-full border border-secondary/20 font-medium">
+              22% pool conversion
+            </span>
+</div>
+<div class="font-body-sm text-[12px] text-outline">
+            Exceeds senior architecture threshold
+          </div>
+</div>
+<!-- Card 3: Average Score -->
+<div class="p-4 rounded-xl bg-surface-container-low/80 border border-white/[0.08] specular-rim flex flex-col justify-between hover:border-white/[0.15] transition-all group">
+<div class="flex items-center justify-between text-outline">
+<span class="font-label-xs text-label-xs tracking-wider uppercase">Average Score</span>
+<div class="w-7 h-7 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[17px]">query_stats</span>
+</div>
+</div>
+<div class="my-3 flex items-center justify-between">
+<div class="flex items-baseline gap-2">
+<span class="font-metric-display text-metric-display font-medium text-primary tracking-tight">64%</span>
+<span class="font-label-xs text-label-xs text-outline">Median 67%</span>
+</div>
+<!-- Mini distribution sparkline -->
+<div class="flex items-end gap-1 h-6">
+<div class="w-1.5 h-2 bg-outline-variant rounded-sm"></div>
+<div class="w-1.5 h-3 bg-outline-variant rounded-sm"></div>
+<div class="w-1.5 h-6 bg-tertiary-fixed-dim rounded-sm"></div>
+<div class="w-1.5 h-5 bg-secondary rounded-sm"></div>
+<div class="w-1.5 h-3 bg-secondary rounded-sm"></div>
+</div>
+</div>
+<div class="font-body-sm text-[12px] text-outline">
+            Normal distribution curve (σ = 18.4)
+          </div>
+</div>
+<!-- Card 4: Active Criteria Weights -->
+<div class="p-4 rounded-xl bg-surface-container-low/80 border border-white/[0.08] specular-rim flex flex-col justify-between hover:border-white/[0.15] transition-all group">
+<div class="flex items-center justify-between text-outline">
+<span class="font-label-xs text-label-xs tracking-wider uppercase">Active Criteria Weights</span>
+<div class="w-7 h-7 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[17px]">tune</span>
+</div>
+</div>
+<div class="my-3 flex items-baseline justify-between">
+<div class="flex items-baseline gap-2">
+<span class="font-metric-display text-metric-display font-medium text-primary tracking-tight">8</span>
+<span class="font-label-xs text-label-xs text-outline">Calibrated Rubrics</span>
+</div>
+<a class="font-label-xs text-label-xs text-primary underline underline-offset-2 decoration-outline hover:text-secondary transition-colors" href="#">View Weights</a>
+</div>
+<div class="font-body-sm text-[11px] text-outline truncate" title="Next.js 15 App Router, Turborepo, RSC, Web Vitals, API Design">
+            Next.js 15, Turborepo, RSC, Web Vitals, API Design
+          </div>
+</div>
+</section>
+<!-- Candidate Filter & Control Strip -->
+<section class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 p-2 rounded-xl bg-surface-container-low/60 border border-white/[0.06] backdrop-blur-md">
+<!-- Filter Segmented Tabs -->
+<div class="flex items-center gap-1 overflow-x-auto p-1 bg-surface-container-lowest/80 rounded-lg border border-outline-variant/30">
+<button class="px-3 py-1.5 rounded-md bg-surface-container-high text-primary font-label-md text-label-md font-medium border border-outline-variant/40 shadow-sm whitespace-nowrap">
+            All Candidates <span class="ml-1 text-on-surface-variant font-normal">(9)</span>
+</button>
+<button class="px-3 py-1.5 rounded-md text-on-surface-variant hover:text-primary hover:bg-surface-container font-label-md text-label-md transition-colors whitespace-nowrap">
+            Strong Fit <span class="ml-1 text-secondary font-medium">(2)</span>
+</button>
+<button class="px-3 py-1.5 rounded-md text-on-surface-variant hover:text-primary hover:bg-surface-container font-label-md text-label-md transition-colors whitespace-nowrap">
+            Potential <span class="ml-1 text-tertiary-fixed-dim font-medium">(4)</span>
+</button>
+<button class="px-3 py-1.5 rounded-md text-on-surface-variant hover:text-primary hover:bg-surface-container font-label-md text-label-md transition-colors whitespace-nowrap">
+            Unqualified <span class="ml-1 text-outline font-normal">(3)</span>
+</button>
+</div>
+<!-- Quick Filters & Sort & View Mode -->
+<div class="flex items-center gap-2 flex-wrap">
+<button class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-surface-container/60 hover:bg-surface-container border border-outline-variant/30 text-on-surface-variant hover:text-primary font-label-md text-label-md transition-colors">
+<span class="material-symbols-outlined text-[15px]">work_history</span>
+<span>Experience (5+ yrs)</span>
+</button>
+<button class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-surface-container/60 hover:bg-surface-container border border-outline-variant/30 text-on-surface-variant hover:text-primary font-label-md text-label-md transition-colors">
+<span class="material-symbols-outlined text-[15px]">speed</span>
+<span>Match ≥ 70%</span>
+</button>
+<button class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-surface-container/60 hover:bg-surface-container border border-outline-variant/30 text-on-surface-variant hover:text-primary font-label-md text-label-md transition-colors">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span>Available Immediately</span>
+</button>
+<div class="h-4 w-px bg-outline-variant/30 mx-1"></div>
+<!-- Sort Dropdown -->
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-high/60 border border-outline-variant/40 text-on-surface font-label-md text-label-md hover:text-primary transition-colors">
+<span class="text-outline">Sort:</span>
+<span>Match Score (Highest first)</span>
+<span class="material-symbols-outlined text-[15px] text-outline">expand_more</span>
+</button>
+<!-- Density/View Toggle -->
+<div class="flex items-center bg-surface-container-lowest p-0.5 rounded-lg border border-outline-variant/30">
+<button class="p-1 rounded bg-surface-container-high text-primary" title="Table View">
+<span class="material-symbols-outlined text-[16px]">view_list</span>
+</button>
+<button class="p-1 rounded text-outline hover:text-on-surface" title="Card View">
+<span class="material-symbols-outlined text-[16px]">grid_view</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Main Dual Split: 7 Cols Leaderboard Table + 5 Cols Dossier Spotlight -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+<!-- Candidate Leaderboard Table (7 Columns on XL) -->
+<div class="xl:col-span-8 flex flex-col rounded-xl bg-surface-container-low/70 border border-white/[0.08] specular-rim overflow-hidden backdrop-blur-xl">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-outline-variant/30 bg-surface-container-lowest/80 text-outline uppercase font-label-xs text-label-xs tracking-wider">
+<th class="py-3 px-4 w-12 text-center">Rank</th>
+<th class="py-3 px-4 min-w-[200px]">Candidate</th>
+<th class="py-3 px-4 min-w-[110px]">Match Score</th>
+<th class="py-3 px-3 min-w-[80px]">Exp</th>
+<th class="py-3 px-4 min-w-[110px]">Fit Status</th>
+<th class="py-3 px-4 min-w-[220px]">Key Signal Tags</th>
+<th class="py-3 px-3 text-right w-20">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/20 font-body-sm text-body-sm">
+<!-- Row 1: Marcus Vance (#1 Active Top Candidate) -->
+<tr class="bg-surface-container/40 hover:bg-surface-container-high/50 transition-colors group relative">
+<td class="py-3 px-4 text-center">
+<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-surface-container-high font-label-xs font-semibold text-primary border border-tertiary-fixed/40 shadow-[0_0_10px_rgba(255,223,159,0.15)]">
+                      #1
+                    </span>
+</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container ring-1 ring-secondary/40 shrink-0">
+<img class="w-full h-full object-cover" data-alt="Intense high-contrast black and white editorial portrait of a mid-thirties male software engineer with sharp focused gaze in minimalist dark ambient lighting, embodying precision tech leadership." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPm4zubVVPjR-M2bDT_RSPn1B3_UY9gy5zitrB25xk6xQIz-M-D2LvqczsqUQqCVB_bTPNeKR0UFb1-IuJEaTwhQkwNMdSlFde7O1WClUUrmbZCtrYHMnxnC3wPaXIF5vAI5GPNOoB8cX7zO_PL-C2eFEAZYPtUCqdogtJFaijmyrkl3q-8Z3NFklgZIrqt36XNdvEE0Vsse8jMjznhYw_77VoQXkLQzOwKFYvGhlsUy8gVwlHMR57Cun_6H1a-2qovN0ySyntotbE"/>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-[13px] font-semibold text-primary truncate">Marcus Vance</span>
+<span class="material-symbols-outlined text-[14px] text-secondary" title="Verified Rubric">verified</span>
+</div>
+<span class="font-body-sm text-[11px] text-outline truncate">Ex-Vercel Staff • San Francisco, CA</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-2">
+<!-- SVG Progress Ring 94% -->
+<div class="relative w-7 h-7 shrink-0">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-outline-variant/40" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+<path class="text-secondary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="94, 100" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+</div>
+<span class="font-headline-sm text-sm font-semibold text-secondary">94%</span>
+</div>
+</td>
+<td class="py-3 px-3 text-on-surface font-medium">8.2 yrs</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-secondary/10 border border-secondary/25 text-secondary font-label-xs text-[11px]">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary shadow-[0_0_6px_rgba(69,223,164,0.7)]"></span> Strong Fit
+                    </span>
+</td>
+<td class="py-3 px-4">
+<div class="flex flex-wrap gap-1">
+<span class="px-1.5 py-0.5 rounded bg-surface-container font-label-xs text-[10px] text-on-surface-variant border border-outline-variant/30">RSC &amp; Server Actions</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container font-label-xs text-[10px] text-on-surface-variant border border-outline-variant/30">Edge Runtime</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container font-label-xs text-[10px] text-on-surface-variant border border-outline-variant/30">Web Vitals 99+</span>
+</div>
+</td>
+<td class="py-3 px-3 text-right">
+<button class="px-2.5 py-1 rounded bg-surface-container-high hover:bg-primary hover:text-surface-container-lowest text-primary text-xs font-label-md transition-all specular-subtle">
+                      Inspect
+                    </button>
+</td>
+</tr>
+<!-- Row 2: Elena Rostova -->
+<tr class="hover:bg-surface-container/50 transition-colors group">
+<td class="py-3 px-4 text-center">
+<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-surface-container-lowest font-label-xs text-outline border border-outline-variant/40">
+                      #2
+                    </span>
+</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container ring-1 ring-outline-variant/40 shrink-0">
+<img class="w-full h-full object-cover" data-alt="Sophisticated monochromatic black and white portrait of a woman tech architect with subtle rim lighting and contemplative analytical expression against a dark slate background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBB_WNJ_GoFPKSjfTx6yaADyv9Micqm53hlvxt0KgEJ5d5SW_lngbnwlhgSENqa7dHV5Sdw3hPxc4aaNUjpNY8P-dbWXK0nY-7bXA8hofj60ACeFtK_kGuYkmIMlJnlIGhPdk4yNdQIyyrWq67OgVQGVB4Epjc9RB7Vl6m6LENOgSuuYkoXY5YRvtmc94yMN58Af712THn8XT3aFMSK5Zl5qKdj05ckuNCHcrvXs2hjRyPZpWQQjv42KM6EdpfdGQ1iaIStkAxJez_n"/>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-[13px] font-semibold text-primary truncate">Elena Rostova</span>
+<span class="font-body-sm text-[11px] text-outline truncate">Ex-Linear Senior • London, UK</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-2">
+<div class="relative w-7 h-7 shrink-0">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-outline-variant/40" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+<path class="text-secondary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="88, 100" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+</div>
+<span class="font-headline-sm text-sm font-semibold text-secondary">88%</span>
+</div>
+</td>
+<td class="py-3 px-3 text-on-surface font-medium">7.5 yrs</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-secondary/10 border border-secondary/25 text-secondary font-label-xs text-[11px]">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Strong Fit
+                    </span>
+</td>
+<td class="py-3 px-4">
+<div class="flex flex-wrap gap-1">
+<span class="px-1.5 py-0.5 rounded bg-surface-container font-label-xs text-[10px] text-on-surface-variant border border-outline-variant/30">Turborepo</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container font-label-xs text-[10px] text-on-surface-variant border border-outline-variant/30">Design Systems</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container font-label-xs text-[10px] text-on-surface-variant border border-outline-variant/30">State Machines</span>
+</div>
+</td>
+<td class="py-3 px-3 text-right">
+<button class="px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface hover:text-primary text-xs font-label-md transition-all">
+                      Inspect
+                    </button>
+</td>
+</tr>
+<!-- Row 3: Devon Park -->
+<tr class="hover:bg-surface-container/50 transition-colors group">
+<td class="py-3 px-4 text-center">
+<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-surface-container-lowest font-label-xs text-outline border border-outline-variant/40">
+                      #3
+                    </span>
+</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container ring-1 ring-outline-variant/40 shrink-0">
+<img class="w-full h-full object-cover" data-alt="Monochrome close-up portrait of an East Asian male senior engineer with glasses, soft studio chiaroscuro lighting, thoughtful and disciplined demeanor." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdZTgnNvtUaM8fknG7bn2wmdQCaqazBs5l5rmrztxDRHQke-HE02LuhkcPEzo50rdKPeV4guvG1g9-b0KiNgrnEh_5NK1CAD4UJNGmstfRv-hsXstyNl14RAeLrh7dewd5vZOwqZuZW1qDUBJOvSWaZHzDWJteSfcBFLKRt-xvoCyIp5vvYTzwKqjImobtOTOf0rdyL_KRBnrjywvJD5jH1hKkCfK9uHFPfzhhbkm3GR87eF7BrgKQq-wyI7y7sbMsq6uvpXGPEhpI"/>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-[13px] font-semibold text-primary truncate">Devon Park</span>
+<span class="font-body-sm text-[11px] text-outline truncate">Stripe Tech Lead • Seattle, WA</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-2">
+<div class="relative w-7 h-7 shrink-0">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-outline-variant/40" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+<path class="text-tertiary-fixed-dim" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="76, 100" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+</div>
+<span class="font-headline-sm text-sm font-semibold text-tertiary-fixed-dim">76%</span>
+</div>
+</td>
+<td class="py-3 px-3 text-on-surface font-medium">9.1 yrs</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-tertiary-fixed-dim/10 border border-tertiary-fixed-dim/25 text-tertiary-fixed-dim font-label-xs text-[11px]">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed-dim"></span> Potential
+                    </span>
+</td>
+<td class="py-3 px-4">
+<div class="flex flex-wrap gap-1">
+<span class="px-1.5 py-0.5 rounded bg-surface-container font-label-xs text-[10px] text-on-surface-variant border border-outline-variant/30">React 19 Hooks</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container font-label-xs text-[10px] text-on-surface-variant border border-outline-variant/30">Payment Flows</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container font-label-xs text-[10px] text-on-surface-variant border border-outline-variant/30">SDK Dev</span>
+</div>
+</td>
+<td class="py-3 px-3 text-right">
+<button class="px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface hover:text-primary text-xs font-label-md transition-all">
+                      Inspect
+                    </button>
+</td>
+</tr>
+<!-- Row 4: Siddharth Rao -->
+<tr class="hover:bg-surface-container/50 transition-colors group">
+<td class="py-3 px-4 text-center">
+<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-surface-container-lowest font-label-xs text-outline border border-outline-variant/40">
+                      #4
+                    </span>
+</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container ring-1 ring-outline-variant/40 shrink-0">
+<img class="w-full h-full object-cover" data-alt="High-end editorial black and white portrait of a South Asian tech lead in a dark turtleneck looking forward with quiet confidence and architectural vision." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCX2Y8JjvTiM70k7qpctxOtp-6niC6JrtX7wu7DU-CfWJ02jTVgHyAOBObNPpOYfDDB7f-y4Z0mdNuYmPGX1kbOO-Tm3UpQVN8BGCFRMuyS8Vdg7hnYbbnqSWSvnK4qyOB957qXln8hXL1DcrfU4ds2dh37K2pAb44zgeAKGrisHnVTA06YSqU15v4AHIaE4-d2W_Xkn6E6NpZm3r-biw92tnnhxB3RIVcPhdgdIKckeYuB5YddX7vvlHLtWZ50SPa8knOgA1IhBLo2"/>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-[13px] font-semibold text-primary truncate">Siddharth Rao</span>
+<span class="font-body-sm text-[11px] text-outline truncate">Datadog Senior • New York, NY</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-2">
+<div class="relative w-7 h-7 shrink-0">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-outline-variant/40" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+<path class="text-tertiary-fixed-dim" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="72, 100" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+</div>
+<span class="font-headline-sm text-sm font-semibold text-tertiary-fixed-dim">72%</span>
+</div>
+</td>
+<td class="py-3 px-3 text-on-surface font-medium">6.0 yrs</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-tertiary-fixed-dim/10 border border-tertiary-fixed-dim/25 text-tertiary-fixed-dim font-label-xs text-[11px]">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed-dim"></span> Potential
+                    </span>
+</td>
+<td class="py-3 px-4">
+<div class="flex flex-wrap gap-1">
+<span class="px-1.5 py-0.5 rounded bg-surface-container font-label-xs text-[10px] text-on-surface-variant border border-outline-variant/30">Telemetry</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container font-label-xs text-[10px] text-on-surface-variant border border-outline-variant/30">Micro-frontends</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container font-label-xs text-[10px] text-on-surface-variant border border-outline-variant/30">Next.js SSR</span>
+</div>
+</td>
+<td class="py-3 px-3 text-right">
+<button class="px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface hover:text-primary text-xs font-label-md transition-all">
+                      Inspect
+                    </button>
+</td>
+</tr>
+<!-- Row 5: Chloe Laurent -->
+<tr class="hover:bg-surface-container/50 transition-colors group">
+<td class="py-3 px-4 text-center">
+<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-surface-container-lowest font-label-xs text-outline border border-outline-variant/40">
+                      #5
+                    </span>
+</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container ring-1 ring-outline-variant/40 shrink-0">
+<img class="w-full h-full object-cover" data-alt="Refined monochrome portrait of a female design technologist with clean architectural lines, subtle soft light framing profile against deep dark background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5mCXiOcYc2f_bZn8eEeAyXu_chCJj8KBmspC029uCZu0DFJkuSZM1ep1Uyjvp3ivf4kpg6PI0TwnnUlh6Fc4aYCFtZ30RXLukQiqK2_CuYGBs0T-b7y7H2ztZZ4_Mn3f_BxfKtJV3VJCAzKti7HjwA6DxIHUgvkI6Q2YoZeqYnynxG3VJ4m-QyzB9VkQCiOojnNR0MqCJXvoh3W7l6rnk5MtzGPVt3hTAPljKFF4UkUfpslXlu2vurjmMKSY0HlYo23uPzUK_3d9a"/>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-[13px] font-semibold text-primary truncate">Chloe Laurent</span>
+<span class="font-body-sm text-[11px] text-outline truncate">Figma Design Eng • Paris, FR</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-2">
+<div class="relative w-7 h-7 shrink-0">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-outline-variant/40" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+<path class="text-tertiary-fixed-dim" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="68, 100" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+</div>
+<span class="font-headline-sm text-sm font-semibold text-tertiary-fixed-dim">68%</span>
+</div>
+</td>
+<td class="py-3 px-3 text-on-surface font-medium">5.4 yrs</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-tertiary-fixed-dim/10 border border-tertiary-fixed-dim/25 text-tertiary-fixed-dim font-label-xs text-[11px]">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed-dim"></span> Potential
+                    </span>
+</td>
+<td class="py-3 px-4">
+<div class="flex flex-wrap gap-1">
+<span class="px-1.5 py-0.5 rounded bg-surface-container font-label-xs text-[10px] text-on-surface-variant border border-outline-variant/30">Wasm / Canvas</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container font-label-xs text-[10px] text-on-surface-variant border border-outline-variant/30">CSS Houdini</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container font-label-xs text-[10px] text-on-surface-variant border border-outline-variant/30">UX Motion</span>
+</div>
+</td>
+<td class="py-3 px-3 text-right">
+<button class="px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface hover:text-primary text-xs font-label-md transition-all">
+                      Inspect
+                    </button>
+</td>
+</tr>
+<!-- Row 6: Henrik Lindqvist -->
+<tr class="hover:bg-surface-container/50 transition-colors group">
+<td class="py-3 px-4 text-center">
+<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-surface-container-lowest font-label-xs text-outline border border-outline-variant/40">
+                      #6
+                    </span>
+</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container ring-1 ring-outline-variant/40 shrink-0">
+<img class="w-full h-full object-cover" data-alt="Monochrome portrait of a Scandinavian software engineer with sharp features against dark charcoal background with gentle edge illumination." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWm9mxzLf5F431-Va6HlKNZv8OVtG7xZPZzkfbLoFQmeoG5juw13zEBuqBhDp-4oGrXjW6Abs6_pdvd_cax2KnTUreVIbj9H0-BEJxx3mQP6exzD_XsGnOLSE1IcNcm1wxfRxhHD2R1Oy3AUpndaLKni-I18geb8h7IfhSXGgum7l6da1tYtUc_voUrBrAQyjs3PQFeryecaukvPUyS2SBippa2WamaaSGuNhBwHJ1VeOGixTj6dlJox1HNjLI6GVVWDk2SeTN7thz"/>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-[13px] font-semibold text-primary truncate">Henrik Lindqvist</span>
+<span class="font-body-sm text-[11px] text-outline truncate">Klarna Senior • Stockholm, SE</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-2">
+<div class="relative w-7 h-7 shrink-0">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-outline-variant/40" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+<path class="text-tertiary-fixed-dim" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="61, 100" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+</div>
+<span class="font-headline-sm text-sm font-semibold text-tertiary-fixed-dim">61%</span>
+</div>
+</td>
+<td class="py-3 px-3 text-on-surface font-medium">4.8 yrs</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-tertiary-fixed-dim/10 border border-tertiary-fixed-dim/25 text-tertiary-fixed-dim font-label-xs text-[11px]">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed-dim"></span> Potential
+                    </span>
+</td>
+<td class="py-3 px-4">
+<div class="flex flex-wrap gap-1">
+<span class="px-1.5 py-0.5 rounded bg-surface-container font-label-xs text-[10px] text-on-surface-variant border border-outline-variant/30">React Native</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container font-label-xs text-[10px] text-on-surface-variant border border-outline-variant/30">GraphQL</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container font-label-xs text-[10px] text-on-surface-variant border border-outline-variant/30">REST v3</span>
+</div>
+</td>
+<td class="py-3 px-3 text-right">
+<button class="px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface hover:text-primary text-xs font-label-md transition-all">
+                      Inspect
+                    </button>
+</td>
+</tr>
+<!-- Row 7: Tatsuya Mori (Unqualified bracket) -->
+<tr class="hover:bg-surface-container/50 transition-colors group opacity-75 hover:opacity-100">
+<td class="py-3 px-4 text-center">
+<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-surface-container-lowest font-label-xs text-outline border border-outline-variant/30">
+                      #7
+                    </span>
+</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container ring-1 ring-outline-variant/30 shrink-0">
+<img class="w-full h-full object-cover" data-alt="Black and white portrait of a Japanese developer with ambient soft cinematic backlighting in quiet modern studio environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYPc_YJ0EOnlFaqNDqaUGmtSla3OuQJc3A-U-npI9MERug49Y9x0WE_nKvtFNyeauBQHei_d-Pl9qEXPiUM9h-2BAhTL9aJYYWZp5O1oRAz7I1rnWXLHfUEoaz-UMk5pbFRfmYezMnb6jpUIFYouxt75pfCuDCv_o82cTad-6ZqY1x8W3hWKtcDn3nKZZcJ5_RC9HzHK-ZcNa8RbiI4-sMLG53hrfQEovbF-NfW015YFo0N83R4aT8vHMudRw2uvyQLtUssA3madGw"/>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-[13px] font-medium text-on-surface truncate">Tatsuya Mori</span>
+<span class="font-body-sm text-[11px] text-outline truncate">Mercari Eng • Tokyo, JP</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-2">
+<div class="relative w-7 h-7 shrink-0">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-outline-variant/30" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+<path class="text-outline" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="51, 100" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+</div>
+<span class="font-headline-sm text-sm font-medium text-outline">51%</span>
+</div>
+</td>
+<td class="py-3 px-3 text-outline">3.2 yrs</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-outline-variant/15 border border-outline-variant/30 text-outline font-label-xs text-[11px]">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span> Unqualified
+                    </span>
+</td>
+<td class="py-3 px-4">
+<div class="flex flex-wrap gap-1">
+<span class="px-1.5 py-0.5 rounded bg-surface-container font-label-xs text-[10px] text-outline border border-outline-variant/20">Vue 3 / Nuxt</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container font-label-xs text-[10px] text-outline border border-outline-variant/20">Pinia</span>
+</div>
+</td>
+<td class="py-3 px-3 text-right">
+<button class="px-2.5 py-1 rounded bg-surface-container text-outline hover:text-on-surface text-xs font-label-md transition-all">
+                      Inspect
+                    </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Bottom Pagination / Audit Bar -->
+<div class="px-4 py-3 bg-surface-container-lowest/80 border-t border-outline-variant/20 flex items-center justify-between font-label-xs text-label-xs text-outline">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span>Showing 7 of 9 evaluated engineers • 2 archived</span>
+</div>
+<div class="flex items-center gap-4">
+<span>Rubric Latency: 182ms avg</span>
+<div class="flex items-center gap-1">
+<button class="p-1 rounded hover:bg-surface-container disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined text-[14px]">chevron_left</span>
+</button>
+<span class="px-2 py-0.5 rounded bg-surface-container text-primary font-medium">1</span>
+<button class="p-1 rounded hover:bg-surface-container">
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Candidate Dossier Spotlight & Rubric Card (5 Columns on XL) -->
+<aside class="xl:col-span-4 flex flex-col gap-4">
+<div class="rounded-xl bg-surface-container-low/80 border border-white/[0.08] specular-rim p-5 backdrop-blur-xl flex flex-col gap-5 relative">
+<!-- Top Card Header -->
+<div class="flex items-start justify-between">
+<div>
+<span class="font-label-xs text-label-xs tracking-wider uppercase text-secondary font-semibold">Active Dossier Spotlight</span>
+<h3 class="font-headline-sm text-headline-sm font-semibold text-primary mt-1">Marcus Vance</h3>
+<p class="font-body-sm text-body-sm text-outline mt-0.5">Staff Engineer Candidate • Target Band E6/IC7</p>
+</div>
+<div class="flex flex-col items-end">
+<div class="flex items-baseline gap-1 bg-secondary/10 border border-secondary/25 px-2.5 py-1 rounded-lg">
+<span class="font-metric-display text-2xl font-bold text-secondary">94</span>
+<span class="font-label-xs text-xs text-secondary/80">/100</span>
+</div>
+<span class="font-label-xs text-[10px] text-outline mt-1">Percentile: Top 1.2%</span>
+</div>
+</div>
+<!-- Rubric Dimensional Breakdown -->
+<div class="flex flex-col gap-3 py-3 border-y border-outline-variant/30">
+<div class="flex items-center justify-between font-label-md text-label-md">
+<span class="text-on-surface-variant">System Architecture &amp; RSC</span>
+<span class="font-medium text-primary">96%</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary rounded-full" style="width: 96%"></div>
+</div>
+<div class="flex items-center justify-between font-label-md text-label-md pt-1">
+<span class="text-on-surface-variant">Performance &amp; Core Web Vitals</span>
+<span class="font-medium text-primary">95%</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary rounded-full" style="width: 95%"></div>
+</div>
+<div class="flex items-center justify-between font-label-md text-label-md pt-1">
+<span class="text-on-surface-variant">Code Craftsmanship &amp; Testing</span>
+<span class="font-medium text-primary">92%</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary rounded-full" style="width: 92%"></div>
+</div>
+<div class="flex items-center justify-between font-label-md text-label-md pt-1">
+<span class="text-on-surface-variant">Technical Leadership &amp; Comms</span>
+<span class="font-medium text-primary">91%</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary rounded-full" style="width: 91%"></div>
+</div>
+</div>
+<!-- AI Synthesis Quote Section -->
+<div class="rounded-lg bg-surface-container-lowest/60 border border-outline-variant/25 p-3.5 flex flex-col gap-2">
+<div class="flex items-center gap-1.5 text-secondary">
+<span class="material-symbols-outlined text-[16px]">psychology</span>
+<span class="font-label-xs text-label-xs font-semibold uppercase tracking-wider">Deterministic AI Synthesis</span>
+</div>
+<p class="font-quote-lead text-[15px] leading-relaxed italic text-on-surface/90 font-display">
+                "Exceptional depth in React Server Components internals and cache invalidation strategies. Led migration of high-throughput dashboard to Next.js App Router at previous venture with 40% reduction in TTI."
+              </p>
+<div class="flex items-center justify-between pt-1 font-label-xs text-[11px] text-outline">
+<span>Rubric Confidence: 99.4%</span>
+<span>4 Code Repositories Indexed</span>
+</div>
+</div>
+<!-- Candidate Quick Metadata Grid -->
+<div class="grid grid-cols-2 gap-2 text-body-sm font-body-sm">
+<div class="p-2.5 rounded-lg bg-surface-container/50 border border-outline-variant/20">
+<span class="font-label-xs text-label-xs text-outline block">Notice Period</span>
+<span class="font-medium text-primary mt-0.5 block">Immediate (Offered)</span>
+</div>
+<div class="p-2.5 rounded-lg bg-surface-container/50 border border-outline-variant/20">
+<span class="font-label-xs text-label-xs text-outline block">Comp Target</span>
+<span class="font-medium text-primary mt-0.5 block">$240k - $270k + Equity</span>
+</div>
+</div>
+<!-- Actions CTA Strip -->
+<div class="flex flex-col gap-2 pt-2">
+<button class="w-full py-2.5 px-4 rounded-full bg-primary text-surface-container-lowest font-label-md text-label-md font-semibold hover:bg-neutral-200 transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm">
+<span class="material-symbols-outlined text-[17px]">event</span>
+<span>Schedule Technical Screen</span>
+</button>
+<button class="w-full py-2 px-4 rounded-full bg-surface-container-high/60 border border-outline-variant/40 hover:bg-surface-container text-on-surface hover:text-primary font-label-md text-label-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 specular-subtle">
+<span class="material-symbols-outlined text-[17px]">download</span>
+<span>Download Full Dossier PDF (18 pgs)</span>
+</button>
+</div>
+</div>
+<!-- Rubric Drift & Grounding Audit Badge -->
+<div class="p-3.5 rounded-xl bg-surface-container-low/40 border border-outline-variant/20 flex items-center justify-between text-outline">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">verified_user</span>
+<div class="flex flex-col">
+<span class="font-label-xs text-label-xs text-on-surface">Zero-Hallucination Verified</span>
+<span class="font-body-sm text-[11px] text-outline">Grounded against 14 GitHub commits &amp; RFCs</span>
+</div>
+</div>
+<a class="font-label-xs text-label-xs text-secondary hover:underline" href="#">Inspect Logs</a>
+</div>
+</aside>
+</div>
+</main>
+<!-- Bottom Editorial Footer Bar -->
+<footer class="mt-auto px-space-xl py-4 border-t border-outline-variant/20 bg-surface-container-lowest text-outline flex flex-col sm:flex-row items-center justify-between text-xs gap-2">
+<div class="flex items-center gap-4">
+<span class="font-semibold text-on-surface">TalentRank AI</span>
+<span>Version 2.4.1-prod</span>
+<span>•</span>
+<span>SOC2 Type II Certified</span>
+<span>•</span>
+<span>Model: Claude 3.5 Sonnet API</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="text-on-surface-variant font-label-xs">All Systems Nominal • Latency 142ms</span>
+</div>
+</footer>
+</div>
+</body></html>
+

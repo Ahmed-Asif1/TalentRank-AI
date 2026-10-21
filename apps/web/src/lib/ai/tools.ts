@@ -16,7 +16,7 @@ import { logger } from "@/lib/logger";
 export function createTools(ownerId: string) {
   return {
     searchItems: tool({
-      description: "Search the user's records by meaning and keywords. Use for finding relevant records.",
+      description: "Search across OTHER candidates in the database. Use only when looking for other candidates outside the current profile.",
       inputSchema: z.object({ query: z.string().describe("The search query") }),
       execute: async ({ query }: { query: string }) => {
         const results = await retrieveContext(query, ownerId, 5);
@@ -32,7 +32,7 @@ export function createTools(ownerId: string) {
     }),
 
     getItem: tool({
-      description: "Get one of the user's records by id, including its analysis.",
+      description: "Get full profile details for a DIFFERENT candidate by ID. Do not use for the currently active candidate whose data is already in context.",
       inputSchema: z.object({ id: z.string().describe("The record id") }),
       execute: async ({ id }: { id: string }) => {
         if (!mongoose.isValidObjectId(id)) return { item: null };

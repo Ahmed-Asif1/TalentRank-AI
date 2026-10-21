@@ -240,7 +240,8 @@ config + mocked-LLM tests · `evals/cases.json` + evals script.
 users            { _id, email, name, image, createdAt }   # Better Auth-owned
 sessions         { ... }                                   # Better Auth-owned
 items            { _id, ownerId, title, content, sourceUrl?, mime?,
-                   status, aiSummary?, aiTags[], embedding[], createdAt }
+                   status, aiSummary?, aiTags[], category?, severity?, score?,
+                   fields (Mixed)?, embedding[], createdAt }
 chatThreads      { _id, ownerId, title, createdAt }
 chatMessages     { _id, threadId, role, parts[], usage, createdAt }
 aiRuns           { _id, ownerId, feature, model, inputTokens, outputTokens,
@@ -283,39 +284,60 @@ stuck. When you outgrow it, auto-embedding is a config change, not a rewrite.
 
 ## 8. AI layer design
 
+**Model Selection (Gemini 3).**
+- Chat & streaming tool calling: **`gemini-3.6-flash`** (with fallback to `gemini-3.8-flash`)
+- Fast structured extraction: **`gemini-3.5-flash-lite`**
+- Semantic embeddings: **`gemini-embedding-001`** (configured to 768 dimensions matching Atlas Vector Search)
+
 **Gateway vs. direct provider.** Vercel AI Gateway charges **no markup** and
-supports **BYOK**. The pattern that costs nothing: put your free Gemini key in as
-BYOK, route through the gateway, and get observability plus provider fallbacks for
-free. Fall back to `@ai-sdk/google` directly if the gateway's own rate limit bites
-you mid-demo. Keep the provider switch in **one file** (`lib/ai/models.ts`) so it
-is a one-line change, not a refactor.
+supports **BYOK**. When `AI_GATEWAY_API_KEY` is present, traffic routes through the gateway;
+otherwise it routes directly to `@ai-sdk/google`.
 
 **Free-tier reality.** Gemini's free tier is capped by **RPM / TPM / RPD, applied
-per project**. Have **two keys** in env and a fallback model. Note that per-*project*
-capping means a second key from the same Google Cloud project shares the same
-quota — use a separate project if you want genuinely independent budget.
+per project**. Have **two keys** in env (`GOOGLE_GENERATIVE_AI_API_KEY` and `GOOGLE_GENERATIVE_AI_API_KEY_B`).
+The model registry in `lib/ai/models.ts` automatically intercepts 429 quota exhaustion errors and
+transparently fails over to the backup key so live demos never crash on stage.
 
 **Structured output.** Zod schema → `generateObject`. Never regex an LLM
-response. Validate *and* coerce: an LLM will happily return `dueDate: "next
-Tuesday"` for a date field. Use `z.coerce.date().optional()` plus a fallback, and
-say so in a comment.
+response. Validate *and* coerce. Optional fields use `.catch(undefined)` so minor LLM
+formatting quirks don't break the entire extraction pipeline.
 
-**Tools, not one god-prompt.** Give the model real tools (`createItem`,
-`searchItems`, `getItem`) rather than stuffing instructions into one enormous
-system prompt. Tool calling is what separates an agent from a wrapper, and it is
-what judges actually notice.
+**Session-Scoped Tools.** Tools are constructed per request via `createTools(ownerId)`:
+- `searchItems`: Semantic vector search scoped to the authenticated user.
+- `getItem`: Retrieves a specific record and its extracted metadata.
+- `createItem`: Saves and analyzes a new record via the unified `processItem` pipeline.
+- `getPortfolioStats`: Calculates counts by severity and portfolio risk averages.
+- `compareItems`: Compares 2 to 4 records side-by-side.
 
-**Streaming.** `streamText` → `createUIMessageStreamResponse` +
-`toUIMessageStream` (the v7 names). Render `message.parts` with an exhaustive
-`switch` **and** a `default` branch — v7 added a `reasoning-file` part type that
-breaks non-exhaustive renderers at runtime.
+**Streaming & Interactive Citations.** `streamText` → `createUIMessageStreamResponse` +
+`toUIMessageStream`. Grounded answers cite sources using `[[item:<id>|<title>]]` markers,
+which the `CitedText` component automatically transforms into clickable source badges.
 
-**Evals.** `evals/cases.json` with 8–10 input → expected-shape pairs, run by a
-script. Judges respond well to "we measured it", and it stops prompt regressions
-when four people are editing prompts at once.
+**Evals.** `evals/cases.json` with 10 input → expected-shape pairs, run offline via `npm run evals`
+using `MockLanguageModelV3`. Stops prompt regressions when team members iterate.
 
-**Never let the model take an irreversible action unattended.** `createItem` is
-fine. Anything destructive or financial goes behind an explicit human confirm.
+---
+
+## 9. The Domain-Adaptable Layer
+
+The repository contains a central **Domain Registry** in `apps/web/src/lib/domain.ts`.
+This allows the team to pivot products without database migrations or schema rewrites.
+
+### Switching Domains
+Change one exported constant in `domain.ts`:
+```typescript
+export const ACTIVE_DOMAIN_ID: DomainId = "contracts"; // "generic" | "contracts" | "meetings" | "tickets"
+```
+
+### Architectural Components:
+1. **Dynamic Schema Extension:** `DomainExtractSchema` extends `ExtractResultSchema` with `domain.fieldsSchema`.
+2. **Polymorphic Storage:** Extracted domain fields are stored in MongoDB as `item.fields` (Mongoose `Mixed`), requiring zero database migrations between domain pivots.
+3. **Domain UI Components:**
+   - `SeverityBadge`: Color-coded priority badges (`low`, `medium`, `high`, `critical`).
+   - `FieldsPanel`: Renders polymorphic domain fields into clean, humanized key-value cards.
+   - `PreviewCard`: Interactive sample moment on the marketing landing page.
+4. **Unified Processing Pipeline:** `apps/web/src/lib/items/process.ts` (`processItem`) unifies structured extraction, embedding generation, and status persistence into a single atomic function called by dashboard forms, item detail re-runs, and AI chat tools.
+5. **Vector Re-Embedding (`npm run db:reembed`):** Standalone script to populate real 768-dimensional model embeddings for seeded records once a live API key is configured.
 
 ---
 

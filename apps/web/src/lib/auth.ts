@@ -4,10 +4,26 @@ import { anonymous } from "better-auth/plugins/anonymous";
 import { magicLink } from "better-auth/plugins/magic-link";
 import { nextCookies } from "better-auth/next-js";
 import { getRawDb } from "@/lib/db";
+import { env } from "@/lib/env";
 
 export const auth = betterAuth({
-  baseURL: process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
-  secret: process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET || "temporary-stub-secret-32-characters-minimum",
+  baseURL: env.BETTER_AUTH_URL,
+  secret: env.BETTER_AUTH_SECRET || env.BETTER_AUTH_API_KEY || "aicon-hackathon-development-secret-key-32-chars-minimum",
+  trustedOrigins: Array.from(
+    new Set(
+      [
+        "https://*.vercel.app",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        env.BETTER_AUTH_URL,
+        process.env.NEXT_PUBLIC_APP_URL,
+        process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined,
+        process.env.VERCEL_PROJECT_PRODUCTION_URL
+          ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+          : undefined,
+      ].filter((x): x is string => Boolean(x && typeof x === "string"))
+    )
+  ),
   database: mongodbAdapter(getRawDb()),
   emailAndPassword: {
     // Disabled in favor of passwordless magic links and anonymous sessions

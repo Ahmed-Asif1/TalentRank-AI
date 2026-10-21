@@ -26,19 +26,19 @@ const dbName = env.MONGODB_DB;
  */
 export function getMongoClient(): MongoClient {
   if (!global._mongoClient) {
-    global._mongoClient = new MongoClient(uri);
+    global._mongoClient = new MongoClient(uri, {
+      serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 5000,
+    });
   }
   return global._mongoClient;
 }
 
 const clientPromise: Promise<MongoClient> = (function getClientPromise() {
-  if (env.NODE_ENV === "development") {
-    if (!global._mongoClientPromise) {
-      global._mongoClientPromise = getMongoClient().connect();
-    }
-    return global._mongoClientPromise;
+  if (!global._mongoClientPromise) {
+    global._mongoClientPromise = getMongoClient().connect();
   }
-  return getMongoClient().connect();
+  return global._mongoClientPromise;
 })();
 
 /**
@@ -66,14 +66,14 @@ export async function connectMongoose(): Promise<typeof mongoose> {
     return mongoose;
   }
 
-  if (env.NODE_ENV === "development") {
-    if (!global._mongoosePromise) {
-      global._mongoosePromise = mongoose.connect(uri, { dbName });
-    }
-    return global._mongoosePromise;
+  if (!global._mongoosePromise) {
+    global._mongoosePromise = mongoose.connect(uri, {
+      dbName,
+      serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 5000,
+    });
   }
-
-  return mongoose.connect(uri, { dbName });
+  return global._mongoosePromise;
 }
 
 export { clientPromise, mongoose };

@@ -48,9 +48,10 @@ describe("extractStructuredData with new fields", () => {
     const r = await extractStructuredData("x", mock({ summary: "s", tags: ["a"] }));
     expect(r.fields).toBeUndefined();
   });
-  it("validates generic domain fields", async () => {
-    const r = await extractStructuredData("x", mock({ summary: "s", tags: ["a"], fields: { keyPoints: ["p1", "p2"] } }));
-    expect(r.fields).toEqual({ keyPoints: ["p1", "p2"] });
+  it("validates domain fields", async () => {
+    const validFields = { strengths: ["p1"], weaknesses: ["p2"], verdict: "Strong fit", yearsOfExperience: 5 };
+    const r = await extractStructuredData("x", mock({ summary: "s", tags: ["a"], fields: validFields }));
+    expect(r.fields).toEqual(validFields);
   });
   it("malformed fields fall back to undefined instead of failing", async () => {
     const r = await extractStructuredData("x", mock({ summary: "s", tags: ["a"], fields: { keyPoints: "not-an-array" } }));
