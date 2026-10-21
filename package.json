@@ -25,5 +25,13 @@
     "db:reset": "npm run db:reset --workspace=apps/web",
     "db:reembed": "npm run db:reembed --workspace=apps/web",
     "evals": "npm run evals --workspace=apps/web"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "unrs-resolver@1.12.2": true,
+    "puppeteer@4.0.1": true
+  },
+  "dependencies": {
+    "@better-auth/infra": "^0.4.17"
   }
 }

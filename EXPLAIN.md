@@ -1,192 +1,149 @@
-# 💡 Project Explained: The Simple Guide to the AICON AI Starter
+# 💡 Project Explained: The Complete Guide to TalentRank AI
 
-Welcome! If you are new to the codebase, participating in a hackathon, or looking to understand how all the moving parts connect without drowning in technical jargon, this guide is for you.
-
----
-
-## 🧭 What is this Project?
-
-Imagine building an AI application like building a modern house.
-Instead of spending days laying the concrete foundation, wiring the electricity, plumbing the pipes, and installing security locks, **this starter gives you a fully functional, move-in-ready foundation on Day 1**.
-
-This repository is an **app-agnostic "AI Spine"**. It gives you:
-1. **A User Interface**: Pre-built pages for landing, dashboards, artifact viewing, and AI chat.
-2. **An Authentication System**: Instant guest login so judges and teammates don't need passwords or email verification.
-3. **A Smart Database (MongoDB Atlas Vector Search)**: A unified place that stores both traditional data (users, items, chat history) and AI vector embeddings.
-4. **An AI Brain (Gemini 3 & AI SDK v7)**: Real-time streaming chat, structured data extraction, and RAG (Retrieval-Augmented Generation).
-5. **The Domain-Adaptable Layer**: Switch your entire product idea (Contracts, Meeting notes, Support tickets, or custom) by changing **one line of code**.
-6. **An Observability Audit Trail**: Automatic logging of every token used, latency, and cost.
+Welcome! If you are new to the codebase, evaluating this project for the hackathon, or looking to understand how all the moving parts connect without drowning in technical jargon, this guide is for you.
 
 ---
 
-## 🎯 How to Change the Entire Product Idea in 1 Line
+## 🧭 What is TalentRank AI?
 
-The secret sauce of this template is [`apps/web/src/lib/domain.ts`](apps/web/src/lib/domain.ts).
+Imagine hiring for a competitive role: you receive hundreds of applicant resumes and LinkedIn profiles.
+- Reviewing them manually takes dozens of hours.
+- Human fatigue leads to inconsistent scoring and bias.
+- Many profiles hide critical details behind truncated web pages.
 
-Instead of rewriting the database or backend when your team pivots, open `domain.ts` and change:
+**TalentRank AI transforms candidate evaluation into an automated, transparent, and bias-free pipeline:**
+1. **Dynamic Job Rubrics:** The recruiter writes rough bullet points for any role, and Gemini expands them into a mathematically sound 0–100 rubric, dealbreakers, and targeted screening questions.
+2. **Multi-Modal Ingestion:** Ingest profiles via text paste, raw resumes, or LinkedIn's built-in **"Save to PDF"** exports (parsed with `pdf-parse` to retain 100% of un-truncated text).
+3. **Structured AI Evaluation:** Gemini extracts verified strengths, weakness flags, hiring verdicts, and tenure calculations.
+4. **Ranked Leaderboard:** Candidates are ranked with Gold/Silver/Bronze badges and filtered by priority.
+5. **Context-Grounded RAG Chat:** Recruiters can drill down into any candidate's background using an AI recruiter chat grounded directly in the candidate's verified profile data.
+
+---
+
+## 🎯 The Workforce Recruiting Architecture
+
+The core domain configuration lives in [`apps/web/src/lib/domain.ts`](apps/web/src/lib/domain.ts):
 
 ```typescript
-export const ACTIVE_DOMAIN_ID = "contracts"; // "generic" | "contracts" | "meetings" | "tickets"
+export const ACTIVE_DOMAIN_ID: DomainId = "workforce_recruiting";
 ```
 
-### What Happens Automatically:
-* **The Labels Change:** "Items" become "Contracts", "Meetings", or "Tickets".
-* **The AI Prompt Adapts:** The AI starts extracting domain-specific fields (e.g., contract clauses with quotes, or meeting action items with owners and due dates).
-* **The Scoring System Updates:** Shows domain risk scores, urgency levels, or action clarity meters.
-* **The Chat Persona Shifts:** The AI responds like a legal risk analyst, a chief of staff, or a support lead.
-* **The Landing Page Updates:** Problem and solution descriptions on the homepage match your chosen domain.
+### What Happens Across the Application:
+* **The Labels:** "Items" are treated as **Candidates**, categorized by **Role Fit** (`Strong Fit`, `Potential`, `Unqualified`), prioritized by urgency (`critical`, `high`, `low`), and ranked by **Match Score** (0–100).
+* **The Structured Schema (`RecruitmentFieldsSchema`):** Automatically extracts:
+  - `strengths`: Evidence-backed reasons the candidate fits the requirements.
+  - `weaknesses`: Missing skills, tenure gaps, or risks to investigate.
+  - `verdict`: Clear, objective hiring recommendation.
+  - `yearsOfExperience`: Total career tenure.
+* **The Dynamic Criteria Engine (`JobCriteriaModel` & `/api/criteria`):** If a recruiter specifies a custom role, the evaluation prompt dynamically injects the active role criteria into Gemini's extraction pipeline, ensuring candidate scores reflect the exact position being hired for.
 
 ---
 
-## 🔄 The Complete Workflow: How Everything Connects
-
-Here is what happens when someone interacts with the application:
+## 🔄 The Complete Candidate Journey: How Everything Connects
 
 ```
-[ User Browser / Judge ]
+[ Recruiter / Judge Browser ]
        │
        ▼
-1. Visit Landing Page ──► Click "Login as Demo User" or "Launch Demo Anonymously"
+1. Visit Landing Page ──► Click "Launch Demo Anonymously" or "Login as Demo User"
        │
        ▼
 2. Better Auth Session ──► Issues an authenticated session cookie (zero signup friction!)
        │
        ▼
-3. Workspace Dashboard ──► Reads records, calculates KPI metrics (total, analyzed, high risk)
+3. Define Criteria ─────► 🎯 Job Criteria modal expands role notes into 0-100 rubric & questions
        │
        ▼
-4. Create New Item ──────► Next.js Server Action saves artifact to MongoDB (pending status)
+4. Ingest Candidate ────► A. Paste Text (instant paste)
+                          B. Upload PDF / LinkedIn "Save to PDF" (parsed via pdf-parse)
+                          C. Automated URL Scrape
        │
        ▼
-5. Unified AI Pipeline ──► A. Gemini 3.5 Flash Lite extracts structured data, severity, & score
+5. Unified AI Pipeline ──► A. Gemini extracts strengths, weaknesses, verdict, tenure, & score
    (lib/items/process.ts) ──► B. Gemini Embedding 001 creates 768-dimensional vector embedding
-                          ──► C. Persists everything in MongoDB (processed status)
+                          ──► C. Persists everything in MongoDB with "processed" status
        │
        ▼
-6. View & Chat ──────────► In /items/[id], inspect raw content, SeverityBadge, and FieldsPanel
+6. Talent Leaderboard ──► Candidates sorted by score (🥇 Gold, 🥈 Silver, 🥉 Bronze)
        │
        ▼
-7. Atlas Vector Search ──► Finds semantically related documents in MongoDB for your question
+7. Candidate Deep-Dive ─► In /items/[id], inspect Strengths, Gaps, Verdict, and Profile history
        │
        ▼
-8. Streaming RAG Chat ───► Gemini 3.8 Flash streams answers, citing exact sources [[item:id|title]]
+8. Interactive RAG Chat ─► Ask questions; Gemini answers citing exact profile experiences [[item:id|title]]
        │
        ▼
-9. Interactive Chips ────► CitedText converts markers into clickable source buttons on the UI!
-       │
-       ▼
-10. AI Run Auditing ─────► Token usage, reasoning tokens, and latency logged to AiRunModel
+9. Clickable Citations ──► CitedText converts markers into interactive badge chips on the UI!
 ```
 
 ---
 
-## 🍃 What is MongoDB & Why is it Better than SQL for AI?
+## 🍃 Why MongoDB Atlas is Essential for This Architecture
 
-### What is MongoDB?
-MongoDB is a **document database**. Unlike traditional SQL databases that force your data into rigid rows and columns like a spreadsheet, MongoDB stores data as flexible, JSON-like documents.
+### 1. Polymorphic Candidate Data
+Candidate profiles vary wildly: some have GitHub repositories, patents, and publications; others have traditional corporate tenures or certifications. 
+MongoDB stores these rich structures natively in `item.fields` without requiring rigid schema alterations or table migrations.
 
-### Why MongoDB Wins for AI:
-1. **Polymorphic Data:** AI outputs (summaries, tags, dynamic fields) are naturally JSON. A contract has clauses; a meeting has attendees; a ticket has customer sentiment. MongoDB stores these in `item.fields` without needing schema migrations or altering tables.
-2. **Unified Vectors & Data:** You don't need a separate database for vectors (like Pinecone) and another for data (like PostgreSQL). MongoDB Atlas handles both standard data queries and vector search in one place.
+### 2. Unified Vector Search & Operational Data
+You don't need a separate database for vectors (like Pinecone) and another for candidate records (like PostgreSQL).
+MongoDB Atlas handles both standard CRUD queries (filtering by status, sorting by score) and 768-dimensional vector similarity searches in a single database.
 
-### Dual-Connection Architecture (`apps/web/src/lib/db.ts`):
+### 3. Dual Connection Architecture (`apps/web/src/lib/db.ts`):
 1. **The Native Driver (`MongoClient`)**: 
-   * A lightweight, direct connection to the database.
-   * Used by our authentication library (**Better Auth**) for fast session lookups.
-   * Cached on `globalThis` as a single connection instance so we never overwhelm database limits during hot reloads.
+   * Direct, lightweight connection used by **Better Auth** for fast session verification.
+   * Cached on `globalThis` as a single instance to prevent connection exhaustion during Next.js Turbopack reloads.
 2. **Mongoose (`connectMongoose`)**:
-   * An Object Modeling library that gives structure to our data.
-   * Defines our schemas (`ItemModel`, `ChatThreadModel`, `ChatMessageModel`, `AiRunModel`) with automatic data validation and type safety.
+   * Provides structured data modeling, type-safe queries, and schema validation for `ItemModel`, `JobCriteriaModel`, `ChatThreadModel`, and `AiRunModel`.
 
 ---
 
-## ☁️ The Two MongoDB Versions: Local vs. Cloud
-
-You can run this project in **two different modes**:
-
-| Feature | 🏠 Mode 1: Local Atlas (Docker) | ☁️ Mode 2: MongoDB Atlas (Cloud) |
-| :--- | :--- | :--- |
-| **Where it runs** | Directly on your computer via Docker | Hosted on MongoDB's cloud servers (AWS/GCP/Azure) |
-| **Internet Required?** | ❌ No — works 100% offline | ✅ Yes — connects over the internet |
-| **Vector Search Support?** | ✅ Yes — includes local `mongot` search engine | ✅ Yes — built into Atlas clusters |
-| **Best For** | Local development, traveling, offline testing, fast reset | Team collaboration, hackathon demos, production deploy |
-| **Connection String** | `mongodb://localhost/?directConnection=true` | `mongodb+srv://<user>:<password>@cluster0.mongodb.net/aicon` |
-
-### How to Switch Between Local and Cloud:
-Open `apps/web/.env.local` and change the `MONGODB_URI` line:
-* To run **locally**: Keep the default `MONGODB_URI="mongodb://localhost/?directConnection=true"` and run `docker compose up -d`.
-* To run in the **cloud**: Replace with your Atlas connection string from your cloud cluster.
-
----
-
-## 🧠 What is Vector Search & RAG? (In Plain English)
+## 🧠 Vector Search & Candidate RAG (In Plain English)
 
 ### 1. Vector Embeddings
-Computers don't understand the meaning of words; they only understand numbers.
-When you save an item, Gemini's embedding model (`gemini-embedding-001`) converts the text into a list of **768 decimal numbers** (a "vector").
-
-* The words *"contract"* and *"agreement"* will have very similar vector numbers because their meanings are related.
-* The words *"contract"* and *"pineapple"* will have very different vector numbers.
+Computers cannot interpret raw career context directly.
+When a candidate profile is ingested, Gemini's embedding model (`gemini-embedding-001`) maps the text into **768 mathematical coordinates**.
+- Profiles with similar technologies (e.g. *Next.js*, *React*, *Tailwind*) map closely together in vector space.
 
 ### 2. Atlas Vector Search
-Instead of searching for exact keywords (like finding rows where `title LIKE '%contract%'`), MongoDB Atlas Vector Search compares the mathematical distance between vectors. It finds documents with **matching concepts**, even if they use completely different vocabulary.
+When a recruiter asks: *"Does this candidate have experience scaling real-time web applications?"*, Atlas compares the question's vector against candidate experience chunks and retrieves the most relevant background snippets.
 
 ### 3. RAG (Retrieval-Augmented Generation)
-If you ask an AI: *"What is our cancellation policy?"*, a generic AI doesn't know your private documents and might hallucinate.
-
-**RAG turns the test into an open-book exam:**
-1. Your question is converted into a vector.
-2. MongoDB Vector Search retrieves the top 4 most relevant items from your database.
-3. The server automatically feeds those 4 items to Gemini inside `<source>` blocks.
-4. Gemini reads the retrieved context and answers your question accurately based on your actual data!
+1. The recruiter's question is converted into an embedding.
+2. MongoDB Vector Search retrieves the top matching career experience chunks.
+3. The server injects those chunks into Gemini inside `<source>` blocks.
+4. Gemini answers the recruiter's question strictly grounded in verified facts, citing exact sources using `[[item:<id>|<title>]]`.
 
 ---
 
 ## 📎 Interactive Citations: How `CitedText` Works
 
-When the AI answers your question using RAG, you don't want it to just claim things—you want proof.
-
-1. The system prompt instructs Gemini:
-   > *"When you use a source, cite it with exactly `[[item:<id>|<title>]]`."*
-2. Gemini produces text like:
-   > *"The vendor liability is capped at one month of fees [[item:6ac0aa...|Master Services Agreement]]."*
-3. On the frontend, [`CitedText.tsx`](apps/web/src/components/ai/cited-text.tsx) automatically detects those markers and replaces them with **interactive pill badges**.
-4. Clicking the pill takes the user straight to that exact document!
+When the AI recruiter answers a question, it cites evidence:
+1. Gemini produces a structured citation:
+   > *"The candidate led frontend architecture at EdTech Solutions for 3 years [[item:6ac9...|Candidate Profile]]."*
+2. On the frontend, [`CitedText.tsx`](apps/web/src/components/ai/cited-text.tsx) detects these markers and renders them as clickable pill buttons.
+3. Clicking the pill displays the exact source item directly on screen.
 
 ---
 
-## 🔄 The Re-Embed Magic: `npm run db:reembed`
+## 🛠️ Complete Tech Stack
 
-When you first seed the database (`npm run db:seed`), it generates deterministic mathematical vectors so the project can be tested completely offline without external API keys.
-
-Before presenting to judges or testing live RAG:
-```bash
-npm run db:reembed
-```
-This script calls Google Gemini with your real API key, generates genuine 768-dimensional embeddings for all records, and saves them to MongoDB Atlas in seconds.
-
----
-
-## 🛠️ The Tech Stack: What Each Tool Does
-
-* **Next.js 16 (App Router + Turbopack)**: The full-stack React framework that powers both the frontend pages and backend API route handlers.
-* **React 19**: Modern UI library with Server Actions and fast component re-renders.
+* **Next.js 16 (App Router + Turbopack)**: High-performance full-stack framework with React Server Components.
+* **React 19**: Modern UI library with Server Actions and fast component updates.
 * **Vercel AI SDK v7 (`ai`, `@ai-sdk/react`)**: The industry standard for streaming chat (`streamText`), structured outputs (`generateObject`), and client hooks (`useChat`).
 * **Google Gemini 3 (`@ai-sdk/google`)**:
-  * `gemini-3.8-flash`: Powers high-speed, intelligent reasoning and streaming chat with tool calling.
-  * `gemini-3.5-flash-lite`: Fast, cost-efficient structured extraction.
-  * `gemini-embedding-001`: Produces 768-dimensional semantic embeddings.
-* **Better Auth**: Modern TypeScript authentication. Features 1-click **Anonymous sessions** and **Demo logins** so judges don't waste time creating accounts.
-* **Zod**: The TypeScript equivalent of Python's Pydantic. Guarantees that runtime LLM JSON outputs and environment variables match your TypeScript types.
-* **Upstash Redis**: Sliding-window rate limiter ensuring users/bots can't spam your Gemini API keys and blow quotas.
-* **FastAPI Sidecar (`apps/api/`)**: An optional Python backend if heavy ML/OCR workloads (like PyTorch or OpenCV) are needed.
+  - `gemini-3.6-flash` / `gemini-3.8-flash`: High-speed candidate evaluation and streaming chat.
+  - `gemini-3.5-flash-lite`: Fast, cost-efficient structured extraction.
+  - `gemini-embedding-001`: Generates 768-dimensional semantic embeddings.
+* **Better Auth**: TypeScript authentication supporting 1-click **Anonymous sessions** and **Demo logins** for instant judge access.
+* **pdf-parse**: High-fidelity multi-page PDF text extraction for resumes and LinkedIn PDF exports.
+* **MongoDB Atlas Local / Cloud**: Single unified datastore for relational metadata and vector embeddings.
+* **Tailwind CSS v4**: Ultra-fast utility styling with modern glassmorphism.
 
 ---
 
-## 🏁 Where to Go From Here
+## 🏁 How to Run & Verify
 
-Now that you understand the concept and architecture:
-1. Open [`apps/web/src/lib/domain.ts`](apps/web/src/lib/domain.ts) and pick your product domain (`generic`, `contracts`, `meetings`, or `tickets`).
-2. Add your free Gemini key to `apps/web/.env.local`.
-3. Run `npm run db:reembed` to populate live vectors.
-4. Run `npm run dev` and test the app in your browser!
+1. Follow [`SETUP_GUIDE.md`](SETUP_GUIDE.md) to set up your `.env.local` and launch MongoDB.
+2. Run `npm run test` to verify all 33 unit tests pass.
+3. Run `npm run evals` to verify the 10/10 AI extraction cases pass.
+4. Run `npm run dev` and explore TalentRank AI at [http://localhost:3000](http://localhost:3000)!

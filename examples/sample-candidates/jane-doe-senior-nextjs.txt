@@ -1,0 +1,22 @@
+Name: Jane Doe
+Headline: Senior Frontend / Next.js Engineer at EdTech Interactive
+Location: San Francisco Bay Area
+
+Summary:
+Passionate frontend engineer with 5+ years of production experience building high-traffic, accessible web applications. Specialized in React 19, Next.js App Router, TypeScript, and distributed design systems. Proven track record leading core user learning portals in the EdTech sector.
+
+Experience:
+- Senior Frontend Engineer at EdTech Interactive (2022-03 to Present)
+  * Architected the core student course delivery platform using Next.js App Router, Tailwind CSS, and TypeScript, serving over 1.2M monthly active learners.
+  * Reduced Initial Server Response time by 42% by migrating critical dashboard routes to React Server Components (RSC) and Turbopack.
+  * Mentored 4 junior and mid-level engineers on component design systems and web accessibility (WCAG 2.1 AA).
+
+- Frontend Engineer at CloudScale Software (2019-06 to 2022-02)
+  * Built real-time collaborative classroom features using WebSockets and Next.js.
+  * Partnered with product and UX design to implement scalable UI component libraries.
+
+Education:
+- B.S. in Computer Science, University of California, Berkeley (2015 - 2019)
+
+Skills:
+React, Next.js, TypeScript, Tailwind CSS, GraphQL, State Management, Cloud Architecture, EdTech Platforms, Web Performance Optimization

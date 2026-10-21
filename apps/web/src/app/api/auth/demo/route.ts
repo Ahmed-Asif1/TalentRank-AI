@@ -39,21 +39,42 @@ export async function POST(): Promise<Response> {
     // Sign the session token using Better Auth's HMAC signature
     const signature = await makeSignature(session.token, ctx.secret);
     const signedToken = `${session.token}.${encodeURIComponent(signature)}`;
-    const secure = env.NODE_ENV === "production";
-    const cookieHeader = `better-auth.session_token=${signedToken}; Path=/; HttpOnly; SameSite=Lax${secure ? "; Secure" : ""}; Max-Age=${30 * 24 * 60 * 60}`;
+    const isHttps = env.BETTER_AUTH_URL.startsWith("https://") || env.NODE_ENV === "production";
+
+    const headers = new Headers({
+      "Content-Type": "application/json",
+    });
+
+    const standardCookie = `better-auth.session_token=${signedToken}; Path=/; HttpOnly; SameSite=Lax${isHttps ? "; Secure" : ""}; Max-Age=${30 * 24 * 60 * 60}`;
+    headers.append("Set-Cookie", standardCookie);
+
+    if (isHttps) {
+      const secureCookie = `__Secure-better-auth.session_token=${signedToken}; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=${30 * 24 * 60 * 60}`;
+      headers.append("Set-Cookie", secureCookie);
+    }
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        "Set-Cookie": cookieHeader,
-      },
+      headers,
     });
   } catch (err) {
-    logger.error("[demo-login] Failed to sign in as demo user", err);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    const errorObj = err instanceof Error ? err : new Error(String(err));
+    logger.error("[demo-login] Failed to sign in as demo user", errorObj);
+
+    return new Response(
+      JSON.stringify({
+        error: "Internal server error",
+        message: errorObj.message,
+        name: errorObj.name,
+        hint:
+          errorObj.name === "MongoServerSelectionError" || errorObj.message.includes("Mongo")
+            ? "Database connection failed. Please ensure MONGODB_URI is properly configured in Vercel environment variables and MongoDB Atlas Network Access has 0.0.0.0/0 allowed."
+            : "Check /api/health to inspect system diagnostics.",
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 }

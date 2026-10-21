@@ -37,7 +37,7 @@ export function PreviewCard(): React.JSX.Element {
       <CardContent className="space-y-4">
         <p className="text-sm leading-relaxed text-foreground/90">{p.summary}</p>
         <div className="flex flex-wrap gap-1.5">
-          {p.tags.map((tag) => (
+          {p.tags.map((tag: string) => (
             <Badge key={tag} variant="secondary" className="text-xs font-normal">
               #{tag}
             </Badge>

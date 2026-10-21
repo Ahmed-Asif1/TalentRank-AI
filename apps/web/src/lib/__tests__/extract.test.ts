@@ -181,4 +181,66 @@ describe("Structured Output Extraction (extractStructuredData)", () => {
       extractStructuredData("Test content", malformedModel)
     ).rejects.toThrow();
   });
+
+  it("enforces mutual consistency between score and candidate fit category", async () => {
+    // LLM returned a drifting category "Potential" despite a high score of 88
+    const mockModel = new MockLanguageModelV3({
+      doGenerate: async () => ({
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({
+              summary: "Senior engineer with 6 years of Next.js experience.",
+              tags: ["nextjs", "react", "typescript"],
+              category: "Potential", // Drifting category
+              score: 88,
+              severity: "low",
+            }),
+          },
+        ],
+        finishReason: { unified: "stop", raw: undefined },
+        usage: {
+          inputTokens: { total: 10, noCache: 10, cacheRead: 0, cacheWrite: 0 },
+          outputTokens: { total: 20, text: 20, reasoning: 0 },
+        },
+        warnings: [],
+      }),
+    });
+
+    const result = await extractStructuredData("Senior Next.js Developer", mockModel, "Senior Role Criteria");
+    // Should be calibrated to Strong Fit and high/critical severity
+    expect(result.score).toBe(88);
+    expect(result.category).toBe("Strong Fit");
+    expect(result.severity).toBe("high");
+  });
+
+  it("calibrates low scores (< 50) to Unqualified and severity low", async () => {
+    const mockModel = new MockLanguageModelV3({
+      doGenerate: async () => ({
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({
+              summary: "Junior developer with 6 months of HTML/CSS.",
+              tags: ["html", "css"],
+              category: "Strong Fit", // Blatant drift
+              score: 35,
+              severity: "critical",
+            }),
+          },
+        ],
+        finishReason: { unified: "stop", raw: undefined },
+        usage: {
+          inputTokens: { total: 10, noCache: 10, cacheRead: 0, cacheWrite: 0 },
+          outputTokens: { total: 20, text: 20, reasoning: 0 },
+        },
+        warnings: [],
+      }),
+    });
+
+    const result = await extractStructuredData("Junior Developer", mockModel, "Senior Role Criteria");
+    expect(result.score).toBe(35);
+    expect(result.category).toBe("Unqualified");
+    expect(result.severity).toBe("low");
+  });
 });

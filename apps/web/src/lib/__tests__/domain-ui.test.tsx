@@ -15,21 +15,13 @@ vi.mock("next/link", () => ({
 vi.mock("@/lib/db", () => ({ connectMongoose: vi.fn(), connectToDatabase: vi.fn(), getRawDb: vi.fn() }));
 
 describe("domain field schemas accept realistic and sloppy LLM output", () => {
-  it("contracts", () => {
-    const r = DOMAINS.contracts.fieldsSchema.safeParse({
-      contractType: "SaaS", autoRenews: true, renewalDate: "2027-01-01", noticePeriodDays: "90",
-      clauses: [{ heading: "Term", quote: "q", category: "weird-category", severity: "nope", explanation: "e" }],
+  it("workforce_recruiting", () => {
+    const r = DOMAINS.workforce_recruiting.fieldsSchema.safeParse({
+      strengths: ["a", "b"],
+      weaknesses: ["c"],
+      verdict: "Strong fit",
+      yearsOfExperience: 5
     });
-    expect(r.success).toBe(true);
-    const d = r.data as { noticePeriodDays: number; clauses: { category: string; severity: string }[] };
-    expect(d.noticePeriodDays).toBe(90);
-    expect(d.clauses[0]).toMatchObject({ category: "other", severity: "medium" });
-  });
-  it("meetings", () => {
-    expect(DOMAINS.meetings.fieldsSchema.safeParse({ actionItems: [{ task: "t", owner: "", due: "", priority: "high" }] }).success).toBe(true);
-  });
-  it("tickets", () => {
-    const r = DOMAINS.tickets.fieldsSchema.safeParse({ customerSentiment: "furious", needsEscalation: true });
     expect(r.success).toBe(true);
   });
 });

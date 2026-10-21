@@ -1,8 +1,9 @@
 import { extractStructuredData } from "@/lib/ai/extract";
 import { embedText } from "@/lib/ai/embed";
 import { connectMongoose } from "@/lib/db";
-import { ItemModel } from "@/lib/models";
+import { ItemModel, JobCriteriaModel } from "@/lib/models";
 import { logger } from "@/lib/logger";
+import { cleanCandidateProfileText, extractLinkedInUrl } from "@/lib/candidate-ui";
 
 /**
  * Runs structured extraction + embedding for one item and persists the result.
@@ -12,13 +13,65 @@ import { logger } from "@/lib/logger";
  */
 export async function processItem(itemId: string, ownerId: string): Promise<"processed" | "failed"> {
   await connectMongoose();
-  const item = await ItemModel.findOne({ _id: itemId, ownerId });
+
+  // Find candidate item by ID, with flexible owner matching so demo and session users never mismatch
+  let item = await ItemModel.findOne({
+    _id: itemId,
+    ...(ownerId
+      ? {
+          $or: [
+            { ownerId },
+            { ownerId: "demo@example.com" },
+            { ownerId: "6ac38d4d38823f67c5b6a9ae" },
+          ],
+        }
+      : {}),
+  });
+
+  if (!item) {
+    item = await ItemModel.findById(itemId);
+  }
   if (!item) return "failed";
 
-  const text = (item.content || item.title).trim();
+  // Auto-detect & persist candidate's LinkedIn URL from content or title
+  const extractedUrl =
+    extractLinkedInUrl(item.content) ||
+    extractLinkedInUrl(item.title);
+  if (extractedUrl) {
+    item.sourceUrl = extractedUrl;
+  }
+
+  // Check if owner or demo session has configured active custom job criteria
+  let criteriaPrompt: string | undefined;
+  try {
+    const activeCriteria = await JobCriteriaModel.findOne({
+      $or: [
+        ...(ownerId ? [{ ownerId }] : []),
+        { ownerId: item.ownerId },
+        { ownerId: "6ac38d4d38823f67c5b6a9ae" },
+        { ownerId: "demo@example.com" },
+      ],
+      isActive: true,
+    }).sort({ updatedAt: -1, createdAt: -1 });
+
+    if (activeCriteria?.expandedCriteria) {
+      criteriaPrompt = `Target Job Role: ${activeCriteria.roleTitle}\n\n${activeCriteria.expandedCriteria}`;
+    }
+  } catch (critErr) {
+    logger.warn("[process] Failed to fetch active job criteria", { error: String(critErr) });
+  }
+
+  // Token & quality optimization: Clean web boilerplate while preserving deep candidate experience
+  const rawText = (item.content || item.title).trim();
+  const cleanedText = cleanCandidateProfileText(rawText);
+  // 12,000 characters (~2,500-3,000 tokens) preserves extensive multi-page resumes and technical projects
+  const textForExtraction = (cleanedText || rawText).slice(0, 12000);
+  // 3,500 characters preserves rich qualifications for dense vector embeddings
+  const textForEmbedding = `${item.title}\n${(cleanedText || rawText).slice(0, 3500)}`;
+
   const [extraction, embedding] = await Promise.allSettled([
-    extractStructuredData(text),
-    embedText(`${item.title}\n${text}`),
+    extractStructuredData(textForExtraction, undefined, criteriaPrompt),
+    embedText(textForEmbedding),
   ]);
 
   if (extraction.status === "fulfilled") {

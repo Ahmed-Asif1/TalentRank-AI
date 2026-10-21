@@ -1,0 +1,21 @@
+Name: Alex Chen
+Headline: Full-Stack AI Engineer & Distributed Systems Developer
+Location: New York, NY
+
+Summary:
+Full-stack software engineer with 4 years of experience building production AI-powered tools, LLM integrations, and modern full-stack web applications. Passionate about vector search, developer tooling, and modern TypeScript workflows.
+
+Experience:
+- AI Application Engineer at Synthetix AI (2023-01 to Present)
+  * Designed and deployed streaming RAG pipelines using Vercel AI SDK, Gemini 3 Flash, and vector databases.
+  * Built real-time talent scoring dashboards in Next.js and Tailwind CSS with sub-second response times.
+
+- Software Engineer at DataFlow Labs (2021-08 to 2022-12)
+  * Engineered high-throughput REST APIs and MongoDB aggregation pipelines handling 10M+ events daily.
+  * Implemented automated CI/CD deployment pipelines on Docker and Kubernetes.
+
+Education:
+- B.S. in Software Engineering, Columbia University (2017 - 2021)
+
+Skills:
+Python, TypeScript, React, Next.js, Node.js, MongoDB, Atlas Vector Search, Gemini API, Docker, FastAPI, Kubernetes

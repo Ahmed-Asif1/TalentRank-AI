@@ -5,7 +5,7 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import {
   Send,
-  Bot,
+  FileSearch,
   User,
   RotateCcw,
   AlertCircle,
@@ -46,18 +46,18 @@ function ToolCard({
   const isError = state === "output-error" || Boolean(errorText);
 
   return (
-    <div className="my-2 rounded-lg border border-border bg-card p-3 text-xs shadow-xs">
+    <div className="my-2 rounded-xl border border-white/[0.07] bg-card p-4 text-xs">
       <div
         className="flex items-center justify-between cursor-pointer select-none"
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-center gap-2">
-          <Wrench className="h-3.5 w-3.5 text-primary" />
+          <Wrench className="size-3.5 text-zinc-500" aria-hidden="true" />
           <span className="font-semibold text-foreground">Tool: {toolName}</span>
           {isComplete && (
             <Badge
               variant="secondary"
-              className="text-[10px] px-1.5 py-0 h-4 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+              className="text-[10px] px-1.5 py-0 h-4 bg-sage/10 text-sage border-sage/20"
             >
               Completed
             </Badge>
@@ -114,19 +114,17 @@ function renderMessagePart(part: UIMessage["parts"][number], index: number) {
   switch (part.type) {
     case "text":
       return (
-        <p key={index} className="whitespace-pre-wrap leading-relaxed">
+        <div key={index} className="leading-relaxed">
           <CitedText text={part.text} />
-        </p>
+        </div>
       );
     case "reasoning":
       return (
         <div
           key={index}
-          className="my-2 rounded-md border border-amber-500/20 bg-amber-500/5 p-3 text-xs font-mono text-muted-foreground"
+          className="my-2 rounded-lg border border-white/[0.06] bg-white/[0.03] p-3.5 text-xs leading-relaxed text-zinc-400"
         >
-          <div className="font-semibold text-amber-600 dark:text-amber-400 not-italic mb-1">
-            Reasoning Process
-          </div>
+          <div className="mb-1 font-medium text-zinc-300">Reasoning</div>
           <div className="whitespace-pre-wrap">{part.text}</div>
         </div>
       );
@@ -207,7 +205,8 @@ export function Chat({
   initialMessages,
 }: ChatProps): React.JSX.Element {
   const [input, setInput] = useState("");
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isInitialMount = useRef(true);
 
   const transport = useMemo(
     () =>
@@ -229,8 +228,20 @@ export function Chat({
   const isStreaming = status === "streaming" || status === "submitted";
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, status]);
+    // Never auto-scroll the browser window on initial page mount (keeps dossier view at the top)
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    // Only scroll the internal chat message list, never the window/page
+    if (scrollContainerRef.current && (messages.length > 0 || isStreaming)) {
+      scrollContainerRef.current.scrollTo({
+        top: scrollContainerRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [messages, status, isStreaming]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -245,56 +256,62 @@ export function Chat({
   };
 
   return (
-    <div className="flex h-[600px] flex-col rounded-xl border border-border bg-card shadow-xs">
+    <div className="flex h-[600px] flex-col overflow-hidden rounded-xl border border-white/[0.07] bg-card">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
-        <div className="flex items-center gap-2">
-          <Bot className="h-5 w-5 text-primary" />
-          <h3 className="text-sm font-semibold text-foreground">AI Chat</h3>
-          {itemId && (
-            <Badge variant="outline" className="text-[11px] font-normal">
-              Item Context Active
-            </Badge>
-          )}
-        </div>
-        {isStreaming && (
-          <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Loader2 className="h-3 w-3 animate-spin" />
-              Streaming...
-            </span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={stop}
-              className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
-            >
-              <Square className="h-3 w-3 mr-1" />
-              Stop
-            </Button>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.04] px-6 py-4">
+        <div className="flex items-center gap-3">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-white/[0.07] bg-white/[0.04] text-zinc-400">
+            <MessageSquare className="size-4" aria-hidden="true" />
           </div>
+          <div>
+            <div className="flex items-center gap-2.5">
+              <h3 className="text-sm font-medium tracking-tight text-zinc-100">Candidate Insights</h3>
+              {itemId && (
+                <span className="inline-flex items-center gap-1.5 text-xs text-zinc-400">
+                  <span className="size-1.5 rounded-full bg-sage" aria-hidden="true" />
+                  Based on this profile
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-zinc-500">Answers cite the part of the profile they come from.</p>
+          </div>
+        </div>
+
+        {isStreaming && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={stop}
+            className="h-7 cursor-pointer border-white/10 bg-white/[0.04] px-2.5 text-xs text-zinc-300 hover:bg-white/[0.08] hover:text-white"
+          >
+            <Square className="mr-1 size-3" aria-hidden="true" />
+            Stop
+          </Button>
         )}
       </div>
 
       {/* Message List */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div ref={scrollContainerRef} className="flex-1 space-y-5 overflow-y-auto p-6">
         {messages.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center text-center p-6 text-muted-foreground">
-            <div className="rounded-full bg-muted p-3 mb-3">
-              <MessageSquare className="h-6 w-6 text-muted-foreground" />
+          <div className="flex h-full flex-col items-center justify-center p-6 text-center">
+            <div className="mb-4 flex size-11 items-center justify-center rounded-xl border border-white/[0.07] bg-well text-zinc-400">
+              <FileSearch className="size-5" aria-hidden="true" />
             </div>
-            <h4 className="font-semibold text-foreground mb-1">Start a Conversation</h4>
-            <p className="text-xs max-w-sm mb-4">
-              Ask questions about this item, request summaries, or let the AI reason with tools.
+            <h4 className="mb-2 font-serif text-lg font-normal tracking-tight text-zinc-50">
+              Inquire about candidate experience
+            </h4>
+            <p className="mb-6 max-w-sm text-xs leading-relaxed text-zinc-400">
+              Check specific career claims, compare experience against the role&apos;s requirements, or
+              draft follow-up interview questions.
             </p>
-            <div className="flex flex-wrap justify-center gap-2 max-w-md">
+            <div className="flex max-w-lg flex-wrap justify-center gap-2">
               {domain.quickPrompts.map((prompt) => (
                 <button
                   key={prompt}
                   type="button"
                   onClick={() => handleQuickPrompt(prompt)}
-                  className="rounded-full border border-border bg-background px-3 py-1 text-xs text-foreground/80 hover:bg-accent transition-colors"
+                  className="cursor-pointer rounded-lg border border-white/[0.07] bg-well px-3.5 py-2 text-xs text-zinc-300 transition-colors select-none hover:border-white/15 hover:text-white focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
                 >
                   {prompt}
                 </button>
@@ -310,24 +327,24 @@ export function Chat({
                 className={`flex gap-3 ${isUser ? "justify-end" : "justify-start"}`}
               >
                 {!isUser && (
-                  <div className="flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <Bot className="h-4 w-4" />
+                  <div className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg border border-white/[0.07] bg-white/[0.04] text-zinc-400 select-none">
+                    <MessageSquare className="size-3.5" aria-hidden="true" />
                   </div>
                 )}
                 <div
-                  className={`max-w-[85%] rounded-lg px-4 py-2.5 text-sm shadow-xs ${
+                  className={`max-w-[85%] rounded-2xl px-5 py-3.5 text-sm ${
                     isUser
-                      ? "bg-primary text-primary-foreground"
-                      : "border border-border bg-muted/40 text-foreground"
+                      ? "rounded-tr-md border border-white/[0.08] bg-white/[0.06] text-zinc-100"
+                      : "rounded-tl-md border border-white/[0.05] bg-well text-zinc-200"
                   }`}
                 >
-                  <div className="space-y-1">
+                  <div className="space-y-1.5 leading-relaxed">
                     {message.parts.map((part, index) => renderMessagePart(part, index))}
                   </div>
                 </div>
                 {isUser && (
-                  <div className="flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full bg-secondary text-secondary-foreground">
-                    <User className="h-4 w-4" />
+                  <div className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg border border-white/[0.07] bg-white/[0.04] text-zinc-400 select-none">
+                    <User className="size-3.5" aria-hidden="true" />
                   </div>
                 )}
               </div>
@@ -335,24 +352,22 @@ export function Chat({
           })
         )}
 
-        {/* Streaming status indicator inside list */}
+        {/* Streaming status inside the list */}
         {isStreaming && (
-          <div className="flex items-center gap-2 text-xs text-muted-foreground pl-11">
-            <span className="flex h-2 w-2 rounded-full bg-primary animate-ping" />
-            <span>AI is formulating a response...</span>
+          <div className="flex items-center gap-2 pl-10 text-xs text-zinc-500" role="status">
+            <Loader2 className="size-3 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+            <span>Searching profile...</span>
           </div>
         )}
-
-        <div ref={messagesEndRef} />
       </div>
 
       {/* Error state with retry */}
       {(error || status === "error") && (
-        <div className="border-t border-destructive/20 bg-destructive/5 px-4 py-2 flex items-center justify-between gap-2 text-xs text-destructive">
+        <div className="flex items-center justify-between gap-2 border-t border-terracotta/20 bg-terracotta/5 px-5 py-2.5 text-xs text-terracotta">
           <div className="flex items-center gap-1.5 overflow-hidden">
-            <AlertCircle className="h-4 w-4 shrink-0" />
+            <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
             <span className="truncate">
-              {error?.message || "An error occurred while streaming response."}
+              {error?.message || "Something went wrong while loading the answer."}
             </span>
           </div>
           <Button
@@ -360,38 +375,45 @@ export function Chat({
             variant="outline"
             size="sm"
             onClick={() => regenerate()}
-            className="h-7 shrink-0 gap-1 text-xs border-destructive/30 hover:bg-destructive/10"
+            className="h-7 shrink-0 cursor-pointer gap-1 border-terracotta/30 text-xs hover:bg-terracotta/10"
           >
-            <RotateCcw className="h-3 w-3" />
+            <RotateCcw className="size-3" aria-hidden="true" />
             Retry
           </Button>
         </div>
       )}
 
       {/* Input Form */}
-      <form onSubmit={handleSubmit} className="border-t border-border p-3 flex gap-2 items-center">
+      <form
+        onSubmit={handleSubmit}
+        className="flex items-center gap-2.5 border-t border-white/[0.04] bg-well/40 p-4"
+      >
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={isStreaming ? "AI is replying..." : "Type your message..."}
+          placeholder={
+            isStreaming
+              ? "Searching profile..."
+              : "Ask about this candidate's skills, tenure, or gaps..."
+          }
           disabled={isStreaming}
-          className="flex-1 text-sm bg-background"
+          aria-label="Ask about this candidate"
+          className="h-10 flex-1 border-input bg-well text-sm text-zinc-100 placeholder:text-zinc-500 focus-visible:ring-1 focus-visible:ring-ring"
         />
         <Button
           type="submit"
           size="sm"
           disabled={!input.trim() || isStreaming}
-          className="gap-1.5 h-9 px-3.5 cursor-pointer"
+          className="h-10 cursor-pointer gap-2 bg-zinc-100 px-4 font-medium text-zinc-950 transition-colors hover:bg-white disabled:opacity-40 disabled:hover:bg-zinc-100"
         >
           {isStreaming ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="size-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
           ) : (
-            <Send className="h-4 w-4" />
+            <Send className="size-4" aria-hidden="true" />
           )}
-          <span className="sr-only">Send</span>
+          <span className="text-xs font-semibold">Send</span>
         </Button>
       </form>
     </div>
   );
 }
-

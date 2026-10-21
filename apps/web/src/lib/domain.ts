@@ -1,15 +1,6 @@
 import { z } from "zod";
-import { SeveritySchema, type Severity } from "@/lib/contracts";
 
-/**
- * DOMAIN REGISTRY — the one file to edit when the product idea changes.
- *
- * Flip ACTIVE_DOMAIN_ID at the bottom and the labels, extraction fields, chat persona,
- * quick prompts, landing copy and dashboard wording all follow.
- * Client-safe (no server imports): used by Server and Client Components.
- */
-
-export type DomainId = "generic" | "contracts" | "meetings" | "tickets";
+export type DomainId = "workforce_recruiting";
 
 export interface DomainConfig {
   id: DomainId;
@@ -27,225 +18,121 @@ export interface DomainConfig {
   };
   problem: string;
   solution: string;
-  /** Appended to EXTRACTION_PROMPT: what severity/score/fields mean in this domain. */
   extractionHint: string;
-  /** Appended to SYSTEM_PROMPT: tone and guardrails. Chat UI renders plain text, so no markdown. */
   chatPersona: string;
   quickPrompts: string[];
-  /** Domain-specific extraction payload stored in Item.fields. Keep every key optional. */
   fieldsSchema: z.ZodType;
-  /** Static sample for the landing-page preview card. */
-  preview: {
-    title: string;
-    severity: Severity;
-    score: number;
-    summary: string;
-    tags: string[];
-    question: string;
-    answer: string;
-    cite: string;
-  };
+  preview: any;
 }
 
-const PLAIN_TEXT_RULE =
-  "Write short paragraphs and simple '-' bullets. Do not use markdown headers, tables, or bold: the chat renders plain text.";
+export const CompetencySchema = z.object({
+  label: z.string().describe("Competency name."),
+  score: z.number().min(0).max(100).describe("Evidence-based rating from 0 to 100."),
+});
 
-const generic: DomainConfig = {
-  id: "generic",
+export const RecruitmentFieldsSchema = z.object({
+  strengths: z.array(z.string()).describe("Evidence-backed reasons this candidate is a good fit."),
+  weaknesses: z.array(z.string()).describe("Missing skills, risks, or gaps to discuss."),
+  verdict: z.string().describe("A concise hiring recommendation for this candidate."),
+  yearsOfExperience: z.number().nonnegative().optional().describe("Estimated total years of relevant experience."),
+  competencies: z
+    .array(CompetencySchema)
+    .optional()
+    .describe(
+      "Four ratings, in this order with these exact labels: Technical depth, System architecture, Modern frontend, Collaboration & execution. Base each on evidence in the profile and keep them broadly consistent with the overall score.",
+    ),
+});
+
+export const workforce_recruiting: DomainConfig = {
+  id: "workforce_recruiting",
   labels: {
-    product: "App-agnostic AI foundation",
-    tagline:
-      "Auth, vector search, structured extraction and streaming chat, wired together and ready for your idea.",
-    singular: "Item",
-    plural: "Items",
-    categoryLabel: "Category",
+    product: "TalentRank AI",
+    tagline: "Automated candidate evaluation and ranking for recruiters.",
+    singular: "Candidate",
+    plural: "Candidates",
+    categoryLabel: "Role Fit",
     severityLabel: "Priority",
-    scoreLabel: "Score",
-    createCta: "Create and analyze",
-    titlePlaceholder: "e.g. Q3 planning overview",
-    contentPlaceholder: "Paste notes, specs, or any text to analyze...",
+    scoreLabel: "Match Score",
+    createCta: "Evaluate Profile",
+    titlePlaceholder: "e.g. Jane Doe - Senior Frontend Engineer",
+    contentPlaceholder: "Paste the raw LinkedIn profile text here...",
   },
-  problem:
-    "Most hackathon time goes to plumbing: auth, storage, retrieval, streaming. Little is left for the idea.",
-  solution:
-    "Paste any text. It is summarized, tagged, scored, embedded and made searchable, and you can chat with it with sources cited.",
-  extractionHint:
-    "severity = how urgent or important the item is. score = 0-100 overall importance. Put 3-5 key points in fields.keyPoints.",
-  chatPersona: `Be concise and practical. ${PLAIN_TEXT_RULE}`,
+  problem: "Reviewing hundreds of scraped profiles to find the perfect candidate is entirely manual and biased.",
+  solution: "AI instantly reads the profile, scores it 0-100 against exact job requirements, and highlights red flags.",
+  
+  // 👉 THE PROMPT GUY WILL EDIT THIS LATER WITH THE EXACT JOB REQUIREMENTS
+  extractionHint: `
+    You are an expert Principal Technical Recruiter and Staff Hiring Lead evaluating candidates for a Senior React/Next.js Engineer role in EdTech.
+
+    EVALUATION PRINCIPLES:
+    1. Base all evaluations strictly on verified claims and evidence in the text. Do not invent facts or assume unstated skills.
+    2. Holistic & Proportionate Scoring: Software engineers with relevant skills (e.g. Next.js, React, Flutter, Python, TypeScript, Web Development) possess genuine engineering foundations. Award proportionate technical points (25-45 pts) rather than giving an abrupt zero score.
+    3. Reserve 0-19 strictly for completely irrelevant, non-technical, or spam profiles (e.g. non-software domains).
+    4. Provide constructive, insightful verdicts that highlight both verified technical strengths and specific seniority gaps required for this role.
+
+    CALIBRATED SCORING BREAKDOWN (0 - 100):
+    1. Core Technical Stack & Frontend Competencies (up to 40 points):
+       - 3+ years production React/Next.js: 35-40 pts.
+       - 1.5 - 3 years React/Next.js or strong TypeScript frontend: 25-34 pts.
+       - 1 - 1.5 years React/Next.js, or adjacent modern application frameworks (Flutter, Python full-stack, Web Development): 15-24 pts.
+       - Foundational programming & software baseline: 5-14 pts.
+    2. Engineering Depth, Scale & Architecture (up to 25 points):
+       - Distributed cloud architecture, serverless, microservices, or high-scale systems: 20-25 pts.
+       - Practical API development, scraping, backend logic, state architecture, or testing: 10-19 pts.
+       - Standard web application implementation: 5-9 pts.
+    3. Domain & Transferable Alignment (up to 20 points):
+       - Direct EdTech / educational technology platform background: 15-20 pts.
+       - Interactive SaaS, consumer web, mobile apps, or digital products: 8-14 pts.
+       - Transferable engineering experience: 3-7 pts.
+    4. Career Trajectory, Education & Stability (up to 15 points):
+       - Computer Science degree, continuous professional learning, or steady career growth: 10-15 pts.
+       - Deduct up to 15 points only if there is unexplained, severe job-hopping (multiple tenures under 6 months).
+
+    CATEGORIZATION BENCHMARKS:
+    - 'Strong Fit' (80-100): Senior engineer meeting or exceeding core stack and domain requirements. Severity: 'high' or 'critical'. Verdict must clearly recommend interviewing.
+    - 'Potential' (50-79): Capable engineer with strong technical foundations; suitable for mid-level or with targeted upskilling in scale/EdTech. Severity: 'medium'. Verdict must note conditional / mid-level fit.
+    - 'Unqualified' (0-49): Junior profile (e.g. 1-2 yrs) or stack mismatch for Senior level; clearly acknowledge their actual skills while noting seniority gaps. Severity: 'low'. Verdict must state seniority mismatch.
+
+    CONSISTENCY REQUIREMENT:
+    The 'score', 'category', and 'verdict' MUST BE 100% MUTUALLY CONSISTENT:
+    - If verdict is positive / recommend interview -> score must be >= 80 and category 'Strong Fit'.
+    - If verdict indicates conditional / mid-level fit -> score must be between 50 and 79 and category 'Potential'.
+    - If verdict indicates unqualified / seniority mismatch -> score must be < 50 and category 'Unqualified'.
+
+    COMPETENCY BREAKDOWN:
+    Also return 'competencies': four 0-100 ratings labeled exactly "Technical depth", "System architecture", "Modern frontend" and "Collaboration & execution". Base each strictly on evidence in the profile; where evidence is thin, give a lower rating rather than a guess. Keep them broadly consistent with the overall score.
+  `,
+  chatPersona: "You are an executive Technical Talent Lead and Staff Engineer advising hiring managers. Provide thorough, articulate, and insightful analysis of candidate experience, technical claims, strengths, gaps, and growth trajectory. Structure your answers with clear headings, clean bullet points, bold key terms, and actionable interview probing suggestions. When citing sources, integrate citations seamlessly and ground all observations in evidence.",
   quickPrompts: [
-    "Summarize this in bullet points.",
-    "What are the key action items?",
-    "Which items are highest priority?",
+    "Summarize this candidate's strongest technical skills.",
+    "Are there any red flags or employment gaps?",
+    "How does this candidate compare to the core job requirements?",
   ],
-  fieldsSchema: z.object({
-    keyPoints: z.array(z.string()).describe("3-5 key points").optional(),
-  }),
+  fieldsSchema: RecruitmentFieldsSchema,
   preview: {
-    title: "Q3 planning overview",
-    severity: "medium",
-    score: 62,
-    summary: "Roadmap priorities for Q3 with two unresolved staffing risks.",
-    tags: ["planning", "roadmap", "staffing"],
-    question: "What are the staffing risks?",
-    answer: "Two roles are unfilled before the launch window, and one depends on a contractor start date.",
-    cite: "Q3 planning overview",
+    title: "Jane Doe - Senior React Dev",
+    severity: "low",
+    score: 92,
+    summary: "Senior engineer with 5 years of Next.js experience and a previous stint at Coursera.",
+    tags: ["react", "nextjs", "edtech"],
+    fields: {
+      strengths: ["5 years building with Next.js", "Previous experience in education technology"],
+      weaknesses: ["Cloud architecture ownership is not clear from the profile"],
+      verdict: "Strong fit — invite to a technical interview.",
+      yearsOfExperience: 5,
+      competencies: [
+        { label: "Technical depth", score: 90 },
+        { label: "System architecture", score: 78 },
+        { label: "Modern frontend", score: 94 },
+        { label: "Collaboration & execution", score: 86 },
+      ],
+    },
+    question: "Should we interview Jane?",
+    answer: "Yes. Her experience at Coursera perfectly aligns with our EdTech requirements and she exceeds the 3-year Next.js baseline. Schedule a technical screen.",
+    cite: "Profile: Jane Doe",
   },
 };
 
-const contracts: DomainConfig = {
-  id: "contracts",
-  labels: {
-    product: "Contract Risk Radar",
-    tagline: "Paste a contract and see what you are really agreeing to, clause by clause, before you sign.",
-    singular: "Contract",
-    plural: "Contracts",
-    categoryLabel: "Type",
-    severityLabel: "Risk",
-    scoreLabel: "Risk score",
-    createCta: "Analyze contract",
-    titlePlaceholder: "e.g. Acme Cloud SaaS agreement",
-    contentPlaceholder: "Paste the contract text here...",
-  },
-  problem:
-    "Freelancers and small teams sign vendor contracts without a lawyer and miss auto-renewals, liability caps and one-sided termination terms.",
-  solution:
-    "Every clause is rated for risk and explained in plain English. A risk score, renewal date and notice period are pulled out, and you can ask questions with the exact clause cited.",
-  extractionHint:
-    "severity = overall contract risk to the signer. score = 0-100 risk (0 safe, 100 dangerous). Fill fields.clauses with the most consequential clauses (max 8), each with a short verbatim quote. Dates must be ISO (YYYY-MM-DD).",
-  chatPersona: `You are a careful contract analyst for non-lawyers. Explain in plain English and quote the relevant clause. State once, briefly, that this is not legal advice. ${PLAIN_TEXT_RULE}`,
-  quickPrompts: [
-    "What are the biggest risks in this contract?",
-    "When does it renew and how do I cancel?",
-    "Which contract is riskiest overall?",
-  ],
-  fieldsSchema: z.object({
-    contractType: z.string().describe("e.g. SaaS agreement, NDA, lease, freelance").optional(),
-    parties: z.array(z.string()).optional(),
-    autoRenews: z.boolean().optional(),
-    renewalDate: z.string().describe("ISO date or empty string if unknown").optional(),
-    noticePeriodDays: z.coerce.number().optional(),
-    clauses: z
-      .array(
-        z.object({
-          heading: z.string(),
-          quote: z.string().describe("Short verbatim excerpt, under 200 characters"),
-          category: z
-            .enum(["termination", "liability", "payment", "renewal", "ip", "confidentiality", "other"])
-            .catch("other"),
-          severity: SeveritySchema.catch("medium"),
-          explanation: z.string().describe("Why this matters, in one plain-English sentence"),
-        })
-      )
-      .max(8)
-      .optional(),
-  }),
-  preview: {
-    title: "Acme Cloud SaaS agreement (sample)",
-    severity: "high",
-    score: 78,
-    summary: "Auto-renews for 12 months and caps vendor liability at one month of fees.",
-    tags: ["auto-renewal", "liability-cap", "saas"],
-    question: "What happens if I cancel in month 3?",
-    answer:
-      "Cancelling mid-term does not end your obligation: fees stay due until the term ends unless you give 90 days' notice before renewal.",
-    cite: "Term and renewal",
-  },
-};
-
-const meetings: DomainConfig = {
-  id: "meetings",
-  labels: {
-    product: "Meeting action engine",
-    tagline: "Turn a messy transcript into decisions, owners and due dates in seconds.",
-    singular: "Meeting",
-    plural: "Meetings",
-    categoryLabel: "Meeting type",
-    severityLabel: "Urgency",
-    scoreLabel: "Action clarity",
-    createCta: "Extract actions",
-    titlePlaceholder: "e.g. Pricing sync, Oct 1",
-    contentPlaceholder: "Paste the meeting transcript or notes here...",
-  },
-  problem: "Teams leave meetings with decisions nobody wrote down and action items with no owner or date.",
-  solution:
-    "Decisions and action items are extracted with owners and due dates, gaps are flagged, and you can ask what was decided across every past meeting.",
-  extractionHint:
-    "severity = urgency of follow-up. score = 0-100 action clarity (100 means every action has an owner and a date). Use empty strings for unknown owners or dates.",
-  chatPersona: `You are a chief of staff. Be direct about who owns what and what is still unowned. ${PLAIN_TEXT_RULE}`,
-  quickPrompts: ["What did we decide?", "Which actions have no owner?", "What is due this week?"],
-  fieldsSchema: z.object({
-    attendees: z.array(z.string()).optional(),
-    decisions: z.array(z.string()).optional(),
-    actionItems: z
-      .array(
-        z.object({
-          task: z.string(),
-          owner: z.string().describe("Empty string if nobody was assigned"),
-          due: z.string().describe("ISO date or empty string"),
-          priority: SeveritySchema.catch("medium"),
-        })
-      )
-      .optional(),
-  }),
-  preview: {
-    title: "Pricing sync, Oct 1 (sample)",
-    severity: "medium",
-    score: 71,
-    summary: "Agreed to pilot usage-based pricing. Four actions, two without owners.",
-    tags: ["pricing", "pilot", "follow-ups"],
-    question: "Who owns the pricing follow-ups?",
-    answer: "Dana owns the competitor benchmark, due Friday. The migration FAQ has no owner yet.",
-    cite: "Pricing sync, Oct 1",
-  },
-};
-
-const tickets: DomainConfig = {
-  id: "tickets",
-  labels: {
-    product: "Support triage copilot",
-    tagline: "Classify every ticket, rank urgency, and draft a reply grounded in how similar tickets were solved.",
-    singular: "Ticket",
-    plural: "Tickets",
-    categoryLabel: "Category",
-    severityLabel: "Urgency",
-    scoreLabel: "Escalation score",
-    createCta: "Triage ticket",
-    titlePlaceholder: "e.g. Charged twice after upgrade",
-    contentPlaceholder: "Paste the customer message here...",
-  },
-  problem: "Support agents drown in tickets and keep re-answering questions that earlier tickets already solved.",
-  solution:
-    "Each ticket is categorized, rated for urgency and sentiment, and answered with a drafted reply that cites similar resolved tickets.",
-  extractionHint:
-    "severity = urgency. score = 0-100 likelihood the ticket needs escalation. Draft a short, polite fields.suggestedReply.",
-  chatPersona: `You are a support lead. Be empathetic and concrete, and base replies on resolved tickets when sources exist. Never promise refunds or credits that the sources do not support. ${PLAIN_TEXT_RULE}`,
-  quickPrompts: [
-    "Draft a reply to this ticket.",
-    "Have we solved this before?",
-    "Which tickets should be escalated?",
-  ],
-  fieldsSchema: z.object({
-    customerSentiment: z.enum(["positive", "neutral", "frustrated", "angry"]).catch("neutral").optional(),
-    product: z.string().optional(),
-    needsEscalation: z.boolean().optional(),
-    suggestedReply: z.string().optional(),
-  }),
-  preview: {
-    title: "Charged twice after upgrade (sample)",
-    severity: "high",
-    score: 84,
-    summary: "Customer was billed twice after a plan upgrade and is asking for a refund.",
-    tags: ["billing", "refund", "duplicate-charge"],
-    question: "Draft a reply.",
-    answer:
-      "Apologize, confirm the duplicate charge, and refund within 3-5 business days, as in the earlier resolved billing ticket.",
-    cite: "Ticket 1042",
-  },
-};
-
-export const DOMAINS: Record<DomainId, DomainConfig> = { generic, contracts, meetings, tickets };
-
-/** One-line switch: "generic" | "contracts" | "meetings" | "tickets". */
-export const ACTIVE_DOMAIN_ID: DomainId = "generic";
-
+export const DOMAINS: Record<DomainId, DomainConfig> = { workforce_recruiting };
+export const ACTIVE_DOMAIN_ID: DomainId = "workforce_recruiting";
 export const domain: DomainConfig = DOMAINS[ACTIVE_DOMAIN_ID];
