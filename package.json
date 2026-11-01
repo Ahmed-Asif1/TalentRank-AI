@@ -32,6 +32,6 @@
     "puppeteer@4.0.1": true
   },
   "dependencies": {
-    "@better-auth/infra": "^0.4.17"
+    "@better-auth/infra": "^0.4.25"
   }
 }
